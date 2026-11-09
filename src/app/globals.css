@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Surface and Text Bridges */
+  --background: #FAF7FB;
+  --foreground: #1A0918;
+
+  /* Mariane Cosméticos Official Brand Palette */
+  --brand-primary: #75066A;
+  --brand-vibrant: #9C27B0;
+  --brand-dark: #4D0046;
+  --brand-accent: #EB1E78;
+  --brand-light: #FAF5FB;
+
+  /* Luxury Neutrals */
+  --luxury-onyx: #1A0918;
+  --luxury-offwhite: #FAF7FB;
+  --luxury-border: #EAE0E3;
+
+  /* Official WhatsApp & Status */
+  --whatsapp-green: #25D366;
+  --whatsapp-dark: #128C7E;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-jakarta), 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Mariane Violet Selection Highlight */
+::selection {
+  background-color: #F3E5F5;
+  color: #4D0046;
+}
+
+::-moz-selection {
+  background-color: #F3E5F5;
+  color: #4D0046;
+}
+
+/* Luxury Cosmetic Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF7FB;
+}
+::-webkit-scrollbar-thumb {
+  background: #EAE0E3;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #75066A;
+}
+
+@layer components {
+  /* Luxury Cosmetic Buttons */
+  .btn-brand-primary {
+    @apply inline-flex items-center justify-center font-medium rounded-full transition-all duration-300 bg-marina-500 hover:bg-marina-600 active:scale-[0.98] text-white shadow-sm hover:shadow-marina-md;
+  }
+
+  .btn-brand-outline {
+    @apply inline-flex items-center justify-center font-medium rounded-full transition-all duration-300 border border-marina-500 text-marina-600 hover:bg-marina-50 hover:border-marina-600 active:scale-[0.98];
+  }
+
+  .btn-whatsapp {
+    @apply inline-flex items-center justify-center font-medium rounded-full transition-all duration-300 bg-emerald-whatsapp hover:bg-emerald-dark active:scale-[0.98] text-white shadow-sm hover:shadow-md;
+  }
+
+  /* Luxury Cosmetic Cards */
+  .card-luxury {
+    @apply bg-white rounded-2xl border border-silk-200/80 shadow-luxury-card hover:shadow-luxury-hover hover:border-marina-200 transition-all duration-300;
+  }
+
+  /* Badges & Pills */
+  .badge-brand {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-marina-50 text-marina-600 border border-marina-100;
+  }
+
+  .badge-dark {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-onyx-900 text-marina-200 border border-onyx-800 shadow-sm;
+  }
+
+  .badge-accent {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-marina-500 text-white shadow-sm;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Cosmetic Ambient Glow */
+  .cosmetic-glow {
+    background: radial-gradient(circle at 50% 50%, rgba(117, 6, 106, 0.12) 0%, transparent 70%);
+  }
+
+  /* Luxury Hero Ambient Background Pattern */
+  .bg-luxury-pattern {
+    background-image: radial-gradient(#75066A 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Brand Gradient Text (for slogans & headlines) */
+  .text-gradient-brand {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-marina-500 via-brand-accent to-marina-700;
+  }
+
+  /* Glassmorphism Header Backdrop */
+  .backdrop-blur-luxury {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Infinite Brand Carousel Marquee */
+  @keyframes brandMarquee {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  .animate-brand-marquee {
+    display: flex;
+    width: max-content;
+    animation: brandMarquee 26s linear infinite;
+    will-change: transform;
+  }
+
+  .animate-brand-marquee:hover,
+  .animate-brand-marquee:active,
+  .animate-brand-marquee:focus-within {
+    animation-play-state: paused;
+  }
+}

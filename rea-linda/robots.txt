@@ -1,0 +1,79 @@
+User-agent: *
+Disallow: /login
+Disallow: /cliente
+Disallow: /checkout/
+Disallow: /*?*caracteristica=*
+Disallow: /*?*deposito=*
+Disallow: /*?*desconto=*
+Disallow: /*?*ordem=*
+Disallow: /*?*inStock=*
+Disallow: /*?*derivacao=*
+Disallow: /*?*q=*
+Allow:
+
+User-agent: Googlebot
+Disallow: /login
+Disallow: /cliente
+Disallow: /checkout/
+Disallow: /*?*caracteristica=*
+Disallow: /*?*deposito=*
+Disallow: /*?*desconto=*
+Disallow: /*?*ordem=*
+Disallow: /*?*inStock=*
+Disallow: /*?*derivacao=*
+Disallow: /*?*q=*
+Allow:
+
+User-agent: Googlebot-Image
+Disallow: /login
+Disallow: /cliente
+Disallow: /checkout/
+Disallow: /*?*caracteristica=*
+Disallow: /*?*deposito=*
+Disallow: /*?*desconto=*
+Disallow: /*?*ordem=*
+Disallow: /*?*inStock=*
+Disallow: /*?*derivacao=*
+Disallow: /*?*q=*
+Allow:
+
+User-agent: Mediapartners-Google
+Disallow: /login
+Disallow: /cliente
+Disallow: /checkout/
+Disallow: /*?*caracteristica=*
+Disallow: /*?*deposito=*
+Disallow: /*?*desconto=*
+Disallow: /*?*ordem=*
+Disallow: /*?*inStock=*
+Disallow: /*?*derivacao=*
+Disallow: /*?*q=*
+Allow:
+
+User-agent: Adsbot-Google
+Disallow: /login
+Disallow: /cliente
+Disallow: /checkout/
+Disallow: /*?*caracteristica=*
+Disallow: /*?*deposito=*
+Disallow: /*?*desconto=*
+Disallow: /*?*ordem=*
+Disallow: /*?*inStock=*
+Disallow: /*?*derivacao=*
+Disallow: /*?*q=*
+Allow:
+
+User-agent: OAI-SearchBot
+Disallow: /login
+Disallow: /cliente
+Disallow: /checkout/
+Disallow: /*?*caracteristica=*
+Disallow: /*?*deposito=*
+Disallow: /*?*desconto=*
+Disallow: /*?*ordem=*
+Disallow: /*?*inStock=*
+Disallow: /*?*derivacao=*
+Disallow: /*?*q=*
+Allow:
+
+Sitemap: https://www.lindacosmeticos.com.br/sitemap.xml

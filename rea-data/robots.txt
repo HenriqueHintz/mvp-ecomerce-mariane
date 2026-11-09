@@ -1,0 +1,82 @@
+User-Agent: *
+Allow: /
+Disallow: /admin
+Disallow: /cameras
+Disallow: /sistema
+Disallow: /carrinho
+Disallow: /cliente
+Disallow: /cliente/meus-dados
+Disallow: /cliente/pedido
+Disallow: /cliente/avaliar
+Disallow: /cliente/troca-devolucao
+Disallow: /cliente/trocar-senha
+Disallow: /cliente/endereco
+Disallow: /cliente/enderecos
+Disallow: /cliente/favoritos
+Disallow: /cliente/admin
+Disallow: /login
+Disallow: /lojas
+Disallow: /checkout
+Disallow: /atendimento
+
+User-Agent: GPTBot
+Disallow: /busca
+
+User-Agent: ChatGPT-User
+Disallow: /busca
+
+User-Agent: ClaudeBot
+Disallow: /busca
+
+User-Agent: anthropic-ai
+Disallow: /busca
+
+User-Agent: Amazonbot
+Disallow: /busca
+
+User-Agent: CCBot
+Disallow: /busca
+
+User-Agent: PerplexityBot
+Disallow: /busca
+
+User-Agent: YouBot
+Disallow: /busca
+
+User-Agent: Applebot
+Disallow: /busca
+
+User-Agent: PetalBot
+Disallow: /busca
+
+User-Agent: bingbot
+Disallow: /busca
+
+User-Agent: Googlebot
+Allow: /
+
+User-Agent: Googlebot-Image
+Allow: /
+
+User-Agent: Mediapartners-Google
+Allow: /
+
+User-Agent: Adsbot-Google
+Allow: /
+
+User-Agent: AdsBot-Google-Mobile-Apps
+Allow: /
+
+User-Agent: Googlebot-News
+Allow: /
+
+User-Agent: Googlebot-Video
+Allow: /
+
+User-Agent: AdsBot-Google-Mobile
+Allow: /
+
+User-Agent: APIs-Google
+Allow: /
+
+Sitemap: https://www.exclusivasex.com.br/sitemap.xml

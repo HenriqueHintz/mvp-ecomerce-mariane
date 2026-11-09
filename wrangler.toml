@@ -1,0 +1,11 @@
+name = "mariane-cosmeticos"
+main = ".open-next/worker.js"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mariane-cosmeticos-db"
+database_id = "local-mariane-cosmeticos-db"
+migrations_dir = "drizzle"
+

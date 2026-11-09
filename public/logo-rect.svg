@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="100%" height="100%" role="img" aria-label="Mariane Cosméticos">
+  <title>Mariane Cosméticos</title>
+  <desc>Mariane Cosméticos - Revendedora oficial Madressenza</desc>
+  <defs>
+    <!-- Radial glow background inside rectangle -->
+    <radialGradient id="rectGlow" cx="50%" cy="50%" r="55%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="45%" stop-color="#FBF4FB" />
+      <stop offset="75%" stop-color="#C548B8" />
+      <stop offset="95%" stop-color="#720485" />
+      <stop offset="100%" stop-color="#550064" />
+    </radialGradient>
+    <clipPath id="rectClip">
+      <rect x="0" y="0" width="480" height="120" rx="16" ry="16" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#rectClip)">
+    <rect x="0" y="0" width="480" height="120" fill="url(#rectGlow)" />
+    <!-- Embedded high-fidelity raster overlay with exact antialiasing -->
+    <image href="/logo-rect.png" x="0" y="0" width="480" height="120" preserveAspectRatio="xMidYMid meet" />
+  </g>
+  <rect x="0.5" y="0.5" width="479" height="119" rx="15.5" ry="15.5" fill="none" stroke="#550064" stroke-width="1.5" stroke-opacity="0.6" />
+</svg>
+

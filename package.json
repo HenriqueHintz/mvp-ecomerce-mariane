@@ -1,0 +1,41 @@
+{
+  "name": "mariane-cosmeticos",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "tsc --noEmit",
+    "test": "tsx tests/e2e/runner.ts",
+    "test:images": "tsx tests/verify-images-http200.ts",
+    "seed": "tsx src/scripts/seed-linda-rea.ts",
+    "seed:truss-brae": "tsx src/scripts/seed-truss-brae.ts",
+    "images:update": "tsx src/scripts/update-product-images.ts",
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.39.3",
+    "lucide-react": "^0.475.0",
+    "next": "15.1.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.30.4",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "wrangler": "^3.109.2"
+  }
+}
