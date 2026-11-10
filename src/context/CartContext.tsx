@@ -1,6 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { COMMERCE_CONFIG } from "@/config/commerce";
+import { STORE_CONFIG, buildWhatsAppLink } from "@/config/store";
+import {
+  toCents,
+  toReais,
+  calculateItemPriceCents,
+  calculatePixDiscountCents,
+} from "@/lib/pricing";
 
 export interface CartItem {
   id: string;
@@ -10,6 +18,7 @@ export interface CartItem {
   brandName?: string | null;
   price: number;
   promoPrice?: number | null;
+  pixDiscountPercent?: number | null;
   image: string;
   quantity: number;
 }
@@ -31,6 +40,7 @@ interface CartContextType {
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   subtotal: number;
+  subtotalCents: number;
   totalItems: number;
   freeShippingThreshold: number;
   freeShippingProgress: number;
@@ -45,7 +55,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const freeShippingThreshold = 199.0;
+  // Limite oficial de frete grátis: R$ 199 (19900 centavos via COMMERCE_CONFIG)
+  const freeShippingThresholdCents = COMMERCE_CONFIG.FREE_SHIPPING_THRESHOLD_CENTS;
+  const freeShippingThreshold = toReais(freeShippingThresholdCents);
 
   useEffect(() => {
     try {
@@ -98,33 +110,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => setItems([]);
 
-  const subtotal = items.reduce((acc, item) => {
-    const price =
-      item.promoPrice && item.promoPrice > 0 && item.promoPrice < item.price
-        ? item.promoPrice
-        : item.price;
-    return acc + price * item.quantity;
+  // Cálculo puramente em centavos inteiros via pricing.ts
+  const subtotalCents = items.reduce((acc, item) => {
+    const unitPriceCents = calculateItemPriceCents({
+      priceCents: toCents(item.price),
+      promoPriceCents: item.promoPrice != null ? toCents(item.promoPrice) : null,
+    });
+    return acc + unitPriceCents * item.quantity;
   }, 0);
 
+  const subtotal = toReais(subtotalCents);
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
 
   const freeShippingProgress = Math.min(
     100,
-    Math.round((subtotal / freeShippingThreshold) * 100)
+    Math.round((subtotalCents / freeShippingThresholdCents) * 100)
   );
-  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+  const remainingForFreeShipping = toReais(
+    Math.max(0, freeShippingThresholdCents - subtotalCents)
+  );
 
+  // Template oficial WhatsApp: MARIANE COSMÉTICOS — "Linda é a mulher que bem se quer" — 5549991251617
   const generateWhatsAppLink = (customerData?: WhatsAppOrderCustomerData) => {
-    const phoneNumber = "5549991251617"; // Número oficial Mariane Cosméticos (Lages - SC)
     if (items.length === 0) {
-      return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-        "Olá, Mariane Cosméticos! Gostaria de tirar uma dúvida sobre os produtos."
-      )}`;
+      return buildWhatsAppLink(
+        `Olá, ${STORE_CONFIG.name}! Gostaria de tirar uma dúvida sobre os produtos.`
+      );
     }
 
-    let message = `*NOVO PEDIDO - MARIANE COSMÉTICOS*\n`;
-    message += `_Linda é a mulher que bem se quer_\n`;
-    message += `📍 _Rua Blumenau, Nº 623, Lages - SC (CEP: 88505-300)_\n\n`;
+    let message = `*NOVO PEDIDO - ${STORE_CONFIG.name.toUpperCase()}*\n`;
+    message += `_${STORE_CONFIG.slogan}_\n`;
+    message += `📍 _${STORE_CONFIG.physicalStore.formattedAddress}_\n\n`;
 
     if (customerData?.orderId) {
       message += `🧾 *Pedido Nº:* ${customerData.orderId}\n`;
@@ -140,20 +156,32 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
     message += `\n*ITENS DA SACOLA:*\n`;
 
-    items.forEach((item, idx) => {
-      const price =
-        item.promoPrice && item.promoPrice > 0 && item.promoPrice < item.price
-          ? item.promoPrice
-          : item.price;
+    const pixItems = items.map((item, idx) => {
+      const unitPriceCents = calculateItemPriceCents({
+        priceCents: toCents(item.price),
+        promoPriceCents: item.promoPrice != null ? toCents(item.promoPrice) : null,
+      });
+      const lineTotalCents = unitPriceCents * item.quantity;
       message += `${idx + 1}. ${item.name} (${item.brandName || "Cosméticos"})\n`;
-      message += `   Qtd: ${item.quantity}x | R$ ${price.toFixed(2)} un. -> *R$ ${(
-        price * item.quantity
-      ).toFixed(2)}*\n`;
+      message += `   Qtd: ${item.quantity}x | R$ ${toReais(unitPriceCents).toFixed(
+        2
+      )} un. -> *R$ ${toReais(lineTotalCents).toFixed(2)}*\n`;
+
+      return {
+        unitPriceCents,
+        quantity: item.quantity,
+        pixDiscountPercent: item.pixDiscountPercent,
+      };
     });
 
-    message += `\n💰 *Subtotal:* R$ ${subtotal.toFixed(2)}`;
-    message += `\n💎 *No PIX (5% OFF):* R$ ${(subtotal * 0.95).toFixed(2)}`;
-    if (subtotal >= freeShippingThreshold) {
+    const pixDiscountCents = calculatePixDiscountCents(pixItems);
+    const pixTotalCents = Math.max(0, subtotalCents - pixDiscountCents);
+
+    message += `\n💰 *Subtotal:* R$ ${toReais(subtotalCents).toFixed(2)}`;
+    message += `\n💎 *No PIX (${COMMERCE_CONFIG.DEFAULT_PIX_DISCOUNT_PERCENT}% OFF):* R$ ${toReais(
+      pixTotalCents
+    ).toFixed(2)}`;
+    if (subtotalCents >= freeShippingThresholdCents) {
       message += `\n🚚 *Frete:* GRÁTIS 🎉`;
     } else {
       message += `\n🚚 *Frete:* A calcular`;
@@ -165,7 +193,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     message += `\n\nOlá, gostaria de confirmar a disponibilidade e finalizar este pedido por aqui!`;
 
-    return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    return buildWhatsAppLink(message);
   };
 
   return (
@@ -179,6 +207,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         isCartOpen,
         setIsCartOpen,
         subtotal,
+        subtotalCents,
         totalItems,
         freeShippingThreshold,
         freeShippingProgress,

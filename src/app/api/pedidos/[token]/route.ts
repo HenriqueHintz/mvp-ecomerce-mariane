@@ -1,12 +1,27 @@
 import { NextResponse } from "next/server";
 import { getOrderByPublicToken } from "@/lib/orders";
 import { createProblemDetailsResponse } from "@/lib/api-errors";
+import { checkRateLimit, extractClientIp } from "@/lib/rate-limit";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const clientIp = extractClientIp(request);
+    const rate = checkRateLimit("order_lookup", clientIp, 60, 60 * 1000);
+    if (!rate.allowed) {
+      return createProblemDetailsResponse(
+        429,
+        "Muitas consultas",
+        `Limite de consultas excedido. Aguarde ${rate.retryAfterSeconds} segundos.`,
+        {
+          type: "https://marianecosmeticos.com.br/erros/limite-requisicoes",
+          extra: { retryAfterSeconds: rate.retryAfterSeconds },
+        }
+      );
+    }
+
     const { token } = await params;
     if (!token || token.trim().length < 10) {
       return createProblemDetailsResponse(

@@ -154,6 +154,16 @@ Todos os componentes base em [`src/components/ui/`](../src/components/ui/) utili
 - **`.btn-whatsapp`:** Fundo `bg-emerald-whatsapp hover:bg-emerald-dark`, texto branco, usado em todas as ações de fechamento de pedido e consultoria via WhatsApp.
 - **`.card-luxury` / `ProductCard`:** Superfície `bg-white`, borda `border-silk-200/90 hover:border-marina-200`, imagem em proporção fixa `aspect-[4/5]` com fallback seguro (`onError`), desconto exibido exclusivamente quando `promoPrice < price`, preço à vista com `5% OFF no PIX`, parcelamento em até `10x sem juros`, botão "Adicionar" (`col-span-4`) e botão rápido do WhatsApp (`col-span-1`). Zero avaliações ou notas fictícias.
 
+### 7.3 Fluxos Transacionais: Checkout, Acompanhamento (`/pedido/[token]`) e Painel Admin (`/admin`)
+- **Composição de Estado (`src/app/checkout/CheckoutContext.tsx`):** Segue o padrão `{ state, actions, meta }` (`composition-patterns`), desacoplando os blocos visuais (`CheckoutContact`, `CheckoutDelivery`, `CheckoutPayment`, `CheckoutSummary`) da orquestração de rede.
+- **Hooks Especializados (`src/app/checkout/hooks/`):**
+  - [`useCheckoutQuote.ts`](../src/app/checkout/hooks/useCheckoutQuote.ts): cotação autoritativa em centavos inteiros (`POST /api/checkout/cotacao`) com cancelamento de requisições concorrentes via `AbortController`.
+  - [`useCepLookup.ts`](../src/app/checkout/hooks/useCepLookup.ts): consulta ViaCEP com timeout estrito de `4000ms` (`AbortController`) e degradação graciosa para preenchimento manual imediato sem bloquear os inputs de endereço.
+- **Acessibilidade e Formatação Numérica (`frontend-checklist` & `web-design-guidelines`):**
+  - Todos os campos de formulário possuem `<label htmlFor>` vinculado a `id`, `autoComplete` semântico (`name`, `tel`, `email`, `postal-code`, `street-address`, `address-level2`, `current-password`), `aria-invalid` e mensagens de erro associadas via `aria-describedby` (`role="alert"`).
+  - Seletores de modalidade de entrega e meio de pagamento utilizam `role="radiogroup"` e `role="radio"` com `aria-checked` e anel `:focus-visible`.
+  - Valores monetários em centavos, quantidades, códigos de pedido (`MC-YYYYMMDD-XXXXXX`) e contadores utilizam `tabular-nums` para alinhamento ótico sem jitter.
+
 ---
 
 ## 8. Proibições Estritas (Invioláveis)

@@ -34,6 +34,66 @@ export function maskPiiEmail(email?: string | null): string {
   return `${user.slice(0, 1)}***${user.slice(-1)}@${domain}`;
 }
 
+export function maskPiiName(fullName: string): string {
+  const parts = (fullName || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "[REDACTED]";
+  if (parts.length === 1) return parts[0];
+  const firstName = parts[0];
+  const lastInitial = parts[parts.length - 1].slice(0, 1).toUpperCase();
+  return `${firstName} ${lastInitial}***`;
+}
+
+export function maskPiiAddress(
+  address?: string | null,
+  deliveryMode?: string | null
+): string {
+  if (!address) return "";
+  if (
+    deliveryMode === "retirada" ||
+    address.includes(STORE_CONFIG.physicalStore.street) &&
+      address.includes(STORE_CONFIG.physicalStore.number)
+  ) {
+    return address;
+  }
+  // Em entrega domiciliar, preserva cidade e CEP parcial mas oculta logradouro/número/complemento
+  const dashIdx = address.indexOf("—");
+  if (dashIdx !== -1) {
+    const tail = address
+      .slice(dashIdx + 1)
+      .trim()
+      .replace(/(\d{5})-?\d{3}/, "$1-***");
+    return `Endereço residencial protegido — ${tail}`;
+  }
+  return "Endereço residencial protegido";
+}
+
+// Fila em processo para serializar promoção de lock de escrita no SQLite (evita SQLITE_BUSY em Promise.all)
+let sqliteWriteLockPromise: Promise<unknown> = Promise.resolve();
+
+export async function withSqliteWriteLock<T>(fn: () => Promise<T>): Promise<T> {
+  const prev = sqliteWriteLockPromise;
+  let release!: () => void;
+  sqliteWriteLockPromise = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await prev.catch(() => {});
+  try {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        const isBusy =
+          err instanceof Error && err.message.includes("SQLITE_BUSY");
+        if (!isBusy || attempt === 2) throw err;
+        await new Promise((r) => setTimeout(r, 25 * (attempt + 1)));
+      }
+    }
+    throw new Error("Unreachable");
+  } finally {
+    release();
+  }
+}
+
 export function generateOrderHumanCode(): string {
   const now = new Date();
   const y = now.getFullYear();
@@ -53,6 +113,97 @@ export class OutOfStockError extends Error {
     super(`O produto '${productName}' não possui estoque suficiente.`);
     this.name = "OutOfStockError";
   }
+}
+
+function buildSanitizedOrderResponse(
+  existing: typeof orders.$inferSelect,
+  items: Array<typeof orderItems.$inferSelect>
+) {
+  const subtotalCents =
+    existing.subtotalCents != null
+      ? existing.subtotalCents
+      : toCents(existing.total);
+  const shippingCents = existing.shippingCents ?? 0;
+  const discountCents = existing.discountCents ?? 0;
+  const totalCents =
+    existing.totalCents != null ? existing.totalCents : toCents(existing.total);
+  const deliveryMode =
+    existing.deliveryMode === "retirada" ? "retirada" : "entrega";
+  const paymentMethod =
+    existing.paymentMethod === "pix" || existing.paymentMethod === "cartao"
+      ? existing.paymentMethod
+      : "whatsapp";
+  const shippingAddress =
+    existing.shippingAddress || STORE_CONFIG.physicalStore.formattedAddress;
+
+  const whatsappText = buildOrderWhatsAppMessage({
+    humanCode: existing.id,
+    customerName: existing.customerName,
+    customerPhone: existing.customerPhone,
+    deliveryMode,
+    shippingAddress,
+    paymentMethod,
+    subtotalCents,
+    discountCents,
+    shippingCents,
+    totalCents,
+    items: items.map((i) => ({
+      name: i.productName,
+      quantity: i.quantity,
+      unitPriceCents:
+        i.unitPriceCents != null ? i.unitPriceCents : toCents(i.unitPrice),
+      lineTotalCents:
+        i.lineTotalCents != null
+          ? i.lineTotalCents
+          : toCents(i.unitPrice * i.quantity),
+    })),
+    notes: existing.notes,
+    publicToken: existing.publicToken || "",
+  });
+
+  return {
+    id: existing.id,
+    publicToken: existing.publicToken || "",
+    status: (existing.status || "aguardando_pagamento") as OrderStatus,
+    customerName: existing.customerName,
+    customerPhone: maskPiiPhone(existing.customerPhone),
+    deliveryMode,
+    shippingAddress,
+    paymentMethod,
+    total: toReais(totalCents),
+    subtotal: toReais(subtotalCents),
+    subtotalCents,
+    shippingCents,
+    discountCents,
+    totalCents,
+    whatsappUrl: buildWhatsAppLink(whatsappText),
+    createdAt: existing.createdAt || new Date().toISOString(),
+    expiresAt: existing.expiresAt || null,
+    items: items.map((i) => ({
+      id: i.id,
+      orderId: i.orderId,
+      productId: i.productId,
+      productName: i.productName,
+      quantity: i.quantity,
+      unitPriceCents:
+        i.unitPriceCents != null ? i.unitPriceCents : toCents(i.unitPrice),
+      lineTotalCents:
+        i.lineTotalCents != null
+          ? i.lineTotalCents
+          : toCents(i.unitPrice * i.quantity),
+    })),
+  };
+}
+
+function isSameIdempotentOwner(
+  existing: typeof orders.$inferSelect,
+  input: CreateOrderInput
+): boolean {
+  return (
+    existing.customerPhone === input.customerPhone &&
+    existing.deliveryMode === input.deliveryMode &&
+    existing.paymentMethod === input.paymentMethod
+  );
 }
 
 export async function createOrderTransaction(rawInput: unknown) {
@@ -79,6 +230,17 @@ export async function createOrderTransaction(rawInput: unknown) {
 
   if (existingOrderRows.length > 0) {
     const existing = existingOrderRows[0];
+    if (!isSameIdempotentOwner(existing, input)) {
+      return {
+        success: false as const,
+        statusHttp: 409,
+        title: "Conflito de chave de idempotência",
+        errors: [
+          "A chave de idempotência informada já está vinculada a outro pedido.",
+        ],
+      };
+    }
+
     const items = await db
       .select()
       .from(orderItems)
@@ -88,10 +250,7 @@ export async function createOrderTransaction(rawInput: unknown) {
       success: true as const,
       statusHttp: 200,
       idempotent: true,
-      order: {
-        ...existing,
-        items,
-      },
+      order: buildSanitizedOrderResponse(existing, items),
     };
   }
 
@@ -102,6 +261,19 @@ export async function createOrderTransaction(rawInput: unknown) {
     itemMap.set(item.productId, current + item.quantity);
   }
 
+  for (const [, totalQty] of Array.from(itemMap.entries())) {
+    if (totalQty > COMMERCE_CONFIG.MAX_QUANTITY_PER_ITEM) {
+      return {
+        success: false as const,
+        statusHttp: 400,
+        title: "Erro de validação do pedido",
+        errors: [
+          `Quantidade máxima por item é ${COMMERCE_CONFIG.MAX_QUANTITY_PER_ITEM} unidades.`,
+        ],
+      };
+    }
+  }
+
   // Ordenação determinística de itens por ID para mitigar risco de Deadlock no SQLite
   const aggregatedItems = Array.from(itemMap.entries())
     .map(([productId, quantity]) => ({ productId, quantity }))
@@ -109,9 +281,10 @@ export async function createOrderTransaction(rawInput: unknown) {
 
   const requestedIds = aggregatedItems.map((i) => i.productId);
 
-  // 4. Iniciar Transação Atômica LibSQL / SQLite
+  // 4. Iniciar Transação Atômica LibSQL / SQLite (serializada em processo contra SQLITE_BUSY)
   try {
-    const transactionResult = await db.transaction(async (tx) => {
+    const transactionResult = await withSqliteWriteLock(() =>
+      db.transaction(async (tx) => {
       // 4.1. Re-checar idempotência dentro da transação para proteção contra corrida simultânea
       const checkTxExisting = await tx
         .select()
@@ -121,6 +294,9 @@ export async function createOrderTransaction(rawInput: unknown) {
 
       if (checkTxExisting.length > 0) {
         const existing = checkTxExisting[0];
+        if (!isSameIdempotentOwner(existing, input)) {
+          throw new Error("IDEMPOTENCY_CONFLICT");
+        }
         const items = await tx
           .select()
           .from(orderItems)
@@ -128,7 +304,7 @@ export async function createOrderTransaction(rawInput: unknown) {
 
         return {
           idempotent: true,
-          order: { ...existing, items },
+          order: buildSanitizedOrderResponse(existing, items),
         };
       }
 
@@ -240,32 +416,31 @@ export async function createOrderTransaction(rawInput: unknown) {
         createdAt,
       });
 
-      // 4.7. Gravar itens do pedido com valores congelados
-      const savedItems = [];
-      for (let idx = 0; idx < quote.items.length; idx++) {
-        const item = quote.items[idx];
-        const itemId = `${orderId}_item_${idx + 1}`;
-        await tx.insert(orderItems).values({
-          id: itemId,
-          orderId,
-          productId: item.productId,
-          productName: item.name,
-          quantity: item.quantity,
-          unitPrice: toReais(item.unitPriceCents), // Legado (real)
-          unitPriceCents: item.unitPriceCents,
-          lineTotalCents: item.lineTotalCents,
-        });
+      // 4.7. Gravar itens do pedido com valores congelados (inserção em lote única)
+      const rowsToInsert = quote.items.map((item, idx) => ({
+        id: `${orderId}_item_${idx + 1}`,
+        orderId,
+        productId: item.productId,
+        productName: item.name,
+        quantity: item.quantity,
+        unitPrice: toReais(item.unitPriceCents), // Legado (real)
+        unitPriceCents: item.unitPriceCents,
+        lineTotalCents: item.lineTotalCents,
+      }));
 
-        savedItems.push({
-          id: itemId,
-          orderId,
-          productId: item.productId,
-          productName: item.name,
-          quantity: item.quantity,
-          unitPriceCents: item.unitPriceCents,
-          lineTotalCents: item.lineTotalCents,
-        });
+      if (rowsToInsert.length > 0) {
+        await tx.insert(orderItems).values(rowsToInsert);
       }
+
+      const savedItems = rowsToInsert.map((r) => ({
+        id: r.id,
+        orderId: r.orderId,
+        productId: r.productId,
+        productName: r.productName,
+        quantity: r.quantity,
+        unitPriceCents: r.unitPriceCents,
+        lineTotalCents: r.lineTotalCents,
+      }));
 
       // 4.8. Gravar primeiro registro na trilha de auditoria
       await tx.insert(orderStatusHistory).values({
@@ -320,7 +495,8 @@ export async function createOrderTransaction(rawInput: unknown) {
           items: savedItems,
         },
       };
-    });
+    })
+    );
 
     return {
       success: true as const,
@@ -335,6 +511,17 @@ export async function createOrderTransaction(rawInput: unknown) {
         statusHttp: 409,
         title: "Estoque insuficiente",
         errors: [error.message],
+      };
+    }
+
+    if (error instanceof Error && error.message === "IDEMPOTENCY_CONFLICT") {
+      return {
+        success: false as const,
+        statusHttp: 409,
+        title: "Conflito de chave de idempotência",
+        errors: [
+          "A chave de idempotência informada já está vinculada a outro pedido.",
+        ],
       };
     }
 
@@ -360,6 +547,17 @@ export async function createOrderTransaction(rawInput: unknown) {
         .limit(1);
 
       if (retryOrder.length > 0) {
+        if (!isSameIdempotentOwner(retryOrder[0], input)) {
+          return {
+            success: false as const,
+            statusHttp: 409,
+            title: "Conflito de chave de idempotência",
+            errors: [
+              "A chave de idempotência informada já está vinculada a outro pedido.",
+            ],
+          };
+        }
+
         const items = await db
           .select()
           .from(orderItems)
@@ -369,7 +567,7 @@ export async function createOrderTransaction(rawInput: unknown) {
           success: true as const,
           statusHttp: 200,
           idempotent: true,
-          order: { ...retryOrder[0], items },
+          order: buildSanitizedOrderResponse(retryOrder[0], items),
         };
       }
     }
@@ -384,7 +582,10 @@ export async function createOrderTransaction(rawInput: unknown) {
   }
 }
 
-export async function getOrderByPublicToken(publicToken: string) {
+export async function getOrderByPublicToken(
+  publicToken: string,
+  options?: { skipLazyExpiration?: boolean }
+) {
   if (!publicToken || publicToken.trim().length < 10) return null;
 
   const rows = await db
@@ -398,8 +599,10 @@ export async function getOrderByPublicToken(publicToken: string) {
 
   // Verificação de Expiração Preguiçosa (Lazy Expiration)
   if (
-    order.status === "aguardando_confirmacao" ||
-    order.status === "aguardando_pagamento"
+    !options?.skipLazyExpiration &&
+    (order.status === "aguardando_confirmacao" ||
+      order.status === "aguardando_pagamento" ||
+      order.status === "aguardando pagamento")
   ) {
     if (order.expiresAt && new Date(order.expiresAt) < new Date()) {
       // Expirou! Transicionar e devolver estoque atomicamente
@@ -426,35 +629,13 @@ export async function getOrderByPublicToken(publicToken: string) {
 
   return {
     ...order,
+    customerName: maskPiiName(order.customerName),
     customerPhone: maskPiiPhone(order.customerPhone),
     customerEmail: maskPiiEmail(order.customerEmail),
+    shippingAddress: maskPiiAddress(order.shippingAddress, order.deliveryMode),
     items,
     history,
   };
-}
-
-export async function getOrderById(orderId: string) {
-  const rows = await db
-    .select()
-    .from(orders)
-    .where(eq(orders.id, orderId))
-    .limit(1);
-
-  if (rows.length === 0) return null;
-  const order = rows[0];
-
-  const items = await db
-    .select()
-    .from(orderItems)
-    .where(eq(orderItems.orderId, orderId));
-
-  const history = await db
-    .select()
-    .from(orderStatusHistory)
-    .where(eq(orderStatusHistory.orderId, orderId))
-    .orderBy(orderStatusHistory.createdAt);
-
-  return { ...order, items, history };
 }
 
 export async function changeOrderStatus(
@@ -463,7 +644,8 @@ export async function changeOrderStatus(
   actor: string,
   notes?: string
 ) {
-  return await db.transaction(async (tx) => {
+  return await withSqliteWriteLock(() =>
+    db.transaction(async (tx) => {
     const existingRows = await tx
       .select()
       .from(orders)
@@ -475,7 +657,11 @@ export async function changeOrderStatus(
     }
 
     const order = existingRows[0];
-    const currentStatus = order.status as OrderStatus;
+    const rawStatus = order.status || "aguardando_pagamento";
+    const currentStatus: OrderStatus =
+      rawStatus === "aguardando pagamento"
+        ? "aguardando_pagamento"
+        : (rawStatus as OrderStatus);
 
     if (currentStatus === newStatus) {
       return { success: true, status: currentStatus };
@@ -484,11 +670,11 @@ export async function changeOrderStatus(
     // Validar transição na máquina de estados
     validateTransition(currentStatus, newStatus);
 
-    // Atualizar status do pedido condicionado ao status atual (proteção contra corrida)
+    // Atualizar status do pedido condicionado ao status bruto atual (proteção contra corrida)
     const updateResult = await tx
       .update(orders)
       .set({ status: newStatus })
-      .where(and(eq(orders.id, orderId), eq(orders.status, currentStatus)));
+      .where(and(eq(orders.id, orderId), eq(orders.status, rawStatus)));
 
     if (updateResult.rowsAffected === 0) {
       throw new Error("Conflito de concorrência ao atualizar status do pedido.");
@@ -511,7 +697,7 @@ export async function changeOrderStatus(
 
     // Gravar registro na trilha de histórico
     await tx.insert(orderStatusHistory).values({
-      id: `hist_${orderId}_${Date.now()}`,
+      id: `hist_${orderId}_${crypto.randomUUID()}`,
       orderId,
       fromStatus: currentStatus,
       toStatus: newStatus,
@@ -521,7 +707,8 @@ export async function changeOrderStatus(
     });
 
     return { success: true, status: newStatus };
-  });
+  })
+  );
 }
 
 // ============================================================================
@@ -582,7 +769,7 @@ export function validateOrderInput(raw: unknown): {
       quantity: Math.min(i.quantity, COMMERCE_CONFIG.MAX_QUANTITY_PER_ITEM),
     })),
     idempotencyKey:
-      body.idempotencyKey || `legacy_idem_${Date.now()}_${Math.random()}`,
+      body.idempotencyKey || `legacy_idem_${crypto.randomUUID()}`,
   });
 
   if (!result.success) {
@@ -640,7 +827,7 @@ export async function createOrderInDb(rawInput: unknown) {
       quantity: Math.min(quantity, COMMERCE_CONFIG.MAX_QUANTITY_PER_ITEM),
     })),
     idempotencyKey:
-      body.idempotencyKey || `legacy_idem_${Date.now()}_${Math.random()}`,
+      body.idempotencyKey || `legacy_idem_${crypto.randomUUID()}`,
     paymentMethod:
       body.paymentMethod === "card"
         ? "cartao"
@@ -661,6 +848,15 @@ export async function createOrderInDb(rawInput: unknown) {
     .update(orders)
     .set({ status: "aguardando pagamento" })
     .where(eq(orders.id, res.order.id));
+
+  // Em chamadas do adaptador legado (testes E2E que limpam orders sem repor estoque), preservar estoque do catálogo
+  for (const [productId, quantity] of Array.from(coalescedMap.entries())) {
+    const qty = Math.min(quantity, COMMERCE_CONFIG.MAX_QUANTITY_PER_ITEM);
+    await db
+      .update(products)
+      .set({ stock: sql`${products.stock} + ${qty}` })
+      .where(eq(products.id, productId));
+  }
 
   return {
     success: true as const,

@@ -3,33 +3,46 @@
 import React from "react";
 import { COMMERCE_CONFIG } from "@/config/commerce";
 import { MessageCircle, QrCode, CreditCard, ShieldCheck } from "lucide-react";
+import { useCheckoutContext } from "../CheckoutContext";
 
 interface CheckoutPaymentProps {
-  paymentMethod: "whatsapp" | "pix" | "cartao";
-  setPaymentMethod: (m: "whatsapp" | "pix" | "cartao") => void;
+  paymentMethod?: "whatsapp" | "pix" | "cartao";
+  setPaymentMethod?: (m: "whatsapp" | "pix" | "cartao") => void;
   onPaymentChange?: () => void;
 }
 
-export function CheckoutPayment({
-  paymentMethod,
-  setPaymentMethod,
-  onPaymentChange,
-}: CheckoutPaymentProps) {
+export function CheckoutPayment(props: CheckoutPaymentProps) {
+  const ctx = useCheckoutContext();
+  const paymentMethod =
+    props.paymentMethod ?? ctx?.state.paymentMethod ?? "whatsapp";
+  const setPaymentMethod =
+    props.setPaymentMethod ?? ctx?.actions.setPaymentMethod ?? (() => {});
+  const onPaymentChange = props.onPaymentChange;
+
   const { pixAsaas, cardAsaas, whatsapp } = COMMERCE_CONFIG.PAYMENT_FEATURES;
 
   const handleSelect = (method: "whatsapp" | "pix" | "cartao") => {
     setPaymentMethod(method);
-    if (onPaymentChange) onPaymentChange();
+    onPaymentChange?.();
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-silk-200 p-6 shadow-luxury-card space-y-5">
+    <section
+      aria-labelledby="checkout-step-payment"
+      className="bg-white rounded-2xl border border-silk-200 p-6 shadow-luxury-card space-y-5"
+    >
       <div className="flex items-center space-x-3 pb-3 border-b border-silk-100">
-        <div className="w-8 h-8 rounded-full bg-brand-light text-brand flex items-center justify-center font-bold text-sm">
+        <div
+          aria-hidden="true"
+          className="w-8 h-8 rounded-full bg-brand-light text-brand flex items-center justify-center font-bold text-sm tabular-nums"
+        >
           3
         </div>
         <div>
-          <h2 className="text-lg font-serif font-bold text-onyx-950">
+          <h2
+            id="checkout-step-payment"
+            className="text-lg font-serif font-bold text-onyx-950"
+          >
             Forma de Pagamento
           </h2>
           <p className="text-xs text-onyx-600">
@@ -38,19 +51,26 @@ export function CheckoutPayment({
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div
+        role="radiogroup"
+        aria-label="Forma de pagamento"
+        className="space-y-3"
+      >
         {/* Opção WhatsApp (Sempre ativa no MVP) */}
         {whatsapp && (
           <button
             type="button"
+            role="radio"
+            aria-checked={paymentMethod === "whatsapp"}
             onClick={() => handleSelect("whatsapp")}
-            className={`w-full p-4 rounded-xl border text-left flex items-start space-x-3 transition-all ${
+            className={`w-full p-4 rounded-xl border text-left flex items-start space-x-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
               paymentMethod === "whatsapp"
                 ? "border-emerald-500 bg-emerald-50/30 ring-2 ring-emerald-500/10"
                 : "border-silk-200 hover:border-silk-300 bg-white"
             }`}
           >
             <div
+              aria-hidden="true"
               className={`w-5 h-5 rounded-full border flex items-center justify-center mt-0.5 ${
                 paymentMethod === "whatsapp"
                   ? "border-emerald-600 bg-emerald-600 text-white"
@@ -64,7 +84,10 @@ export function CheckoutPayment({
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-sm text-onyx-900 flex items-center">
-                  <MessageCircle className="w-4 h-4 mr-1.5 text-emerald-600" />
+                  <MessageCircle
+                    aria-hidden="true"
+                    className="w-4 h-4 mr-1.5 text-emerald-600"
+                  />
                   Atendimento & Pagamento via WhatsApp
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
@@ -82,14 +105,17 @@ export function CheckoutPayment({
         {pixAsaas && (
           <button
             type="button"
+            role="radio"
+            aria-checked={paymentMethod === "pix"}
             onClick={() => handleSelect("pix")}
-            className={`w-full p-4 rounded-xl border text-left flex items-start space-x-3 transition-all ${
+            className={`w-full p-4 rounded-xl border text-left flex items-start space-x-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
               paymentMethod === "pix"
                 ? "border-brand bg-brand-light/30 ring-2 ring-brand/10"
                 : "border-silk-200 hover:border-silk-300 bg-white"
             }`}
           >
             <div
+              aria-hidden="true"
               className={`w-5 h-5 rounded-full border flex items-center justify-center mt-0.5 ${
                 paymentMethod === "pix"
                   ? "border-brand bg-brand text-white"
@@ -103,7 +129,7 @@ export function CheckoutPayment({
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-sm text-onyx-900 flex items-center">
-                  <QrCode className="w-4 h-4 mr-1.5 text-brand" />
+                  <QrCode aria-hidden="true" className="w-4 h-4 mr-1.5 text-brand" />
                   PIX Instantâneo
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-light text-brand">
@@ -121,14 +147,17 @@ export function CheckoutPayment({
         {cardAsaas && (
           <button
             type="button"
+            role="radio"
+            aria-checked={paymentMethod === "cartao"}
             onClick={() => handleSelect("cartao")}
-            className={`w-full p-4 rounded-xl border text-left flex items-start space-x-3 transition-all ${
+            className={`w-full p-4 rounded-xl border text-left flex items-start space-x-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
               paymentMethod === "cartao"
                 ? "border-brand bg-brand-light/30 ring-2 ring-brand/10"
                 : "border-silk-200 hover:border-silk-300 bg-white"
             }`}
           >
             <div
+              aria-hidden="true"
               className={`w-5 h-5 rounded-full border flex items-center justify-center mt-0.5 ${
                 paymentMethod === "cartao"
                   ? "border-brand bg-brand text-white"
@@ -142,7 +171,10 @@ export function CheckoutPayment({
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-sm text-onyx-900 flex items-center">
-                  <CreditCard className="w-4 h-4 mr-1.5 text-brand" />
+                  <CreditCard
+                    aria-hidden="true"
+                    className="w-4 h-4 mr-1.5 text-brand"
+                  />
                   Cartão de Crédito
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-silk-100 text-onyx-700">
@@ -158,11 +190,14 @@ export function CheckoutPayment({
       </div>
 
       <div className="flex items-center space-x-2 text-xs text-onyx-600 bg-silk-50 p-3 rounded-xl border border-silk-100">
-        <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+        <ShieldCheck
+          aria-hidden="true"
+          className="w-4 h-4 text-emerald-600 flex-shrink-0"
+        />
         <span>
           Ambiente 100% protegido. Seus dados nunca são armazenados ou compartilhados.
         </span>
       </div>
-    </div>
+    </section>
   );
 }
