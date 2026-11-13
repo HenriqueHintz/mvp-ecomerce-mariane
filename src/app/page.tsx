@@ -113,25 +113,38 @@ export default async function HomePage() {
       <StoreMapSection />
 
       {/* 4. Chamada Final */}
-      <section className="py-10 sm:py-14 lg:py-16">
+      <section className="pt-2 pb-10 sm:pt-4 sm:pb-12 lg:pb-14">
         <Container>
-          <div className="bg-white rounded-3xl border border-marina-200/80 p-8 sm:p-12 text-center shadow-luxury-card space-y-6">
-            <h2 className="font-serif text-2xl sm:text-4xl text-onyx-950 max-w-2xl mx-auto leading-tight">
+          <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-marina-200/80 py-10 px-6 sm:py-12 sm:px-10 text-center shadow-luxury-card">
+            <h2 className="font-serif text-2xl sm:text-4xl font-bold text-onyx-950 max-w-md mx-auto leading-tight tracking-tight [word-spacing:0.04em]">
               Pronta para cuidar da sua beleza?
             </h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
-              <Button href="/produtos" variant="primary" size="lg">
-                <ShoppingBag className="w-4 h-4" />
-                <span>Explorar Catálogo Completo</span>
+            <p className="mt-3 text-sm sm:text-base text-onyx-700 max-w-md mx-auto leading-relaxed [word-spacing:0.05em]">
+              Atendimento personalizado pelo WhatsApp ou retire na loja em Lages.
+            </p>
+            <div className="mt-6 sm:mt-7 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto w-full">
+              <Button
+                href="/produtos"
+                variant="primary"
+                size="lg"
+                fullWidth
+                className="normal-case tracking-normal text-sm min-h-[48px] px-6 py-3 [word-spacing:0.06em]"
+              >
+                <ShoppingBag className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span>Ver catálogo</span>
               </Button>
               <Button
                 href="https://wa.me/5549991251617?text=Ol%C3%A1%2C%20Mariane%20Cosm%C3%A9ticos!%20Quero%20fazer%20um%20pedido."
                 external
                 variant="whatsapp"
                 size="lg"
+                fullWidth
+                aria-label="Falar no WhatsApp (49) 99125-1617"
+                title="Falar no WhatsApp (49) 99125-1617"
+                className="normal-case tracking-normal text-sm min-h-[48px] px-6 py-3 [word-spacing:0.06em] !bg-emerald-700 hover:!bg-emerald-800 text-white"
               >
-                <MessageCircle className="w-4 h-4 fill-white" />
-                <span>Falar no WhatsApp (49) 99125-1617</span>
+                <MessageCircle className="w-4 h-4 fill-white shrink-0" aria-hidden="true" />
+                <span>Falar no WhatsApp</span>
               </Button>
             </div>
           </div>
