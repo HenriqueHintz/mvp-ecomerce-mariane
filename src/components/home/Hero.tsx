@@ -185,7 +185,7 @@ export default function Hero({ products }: HeroProps) {
       onTouchEnd={handleTouchEnd}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="hero-editorial relative w-full h-[74svh] min-h-[460px] max-h-[600px] md:h-[clamp(560px,76vh,720px)] md:max-h-[760px] overflow-hidden select-none"
+      className="hero-editorial relative w-full h-[calc(100vh-var(--header-h))] supports-[height:100svh]:h-[calc(100svh-var(--header-h))] min-h-[480px] md:h-[clamp(560px,76vh,720px)] md:max-h-[760px] overflow-hidden select-none"
     >
       {/* Anúncio acessível de mudança de slide (apenas para leitores de tela) */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -236,26 +236,26 @@ export default function Hero({ products }: HeroProps) {
         />
       </button>
 
-      {/* Container de Conteúdo Fixo (Esquerda no Desktop / Metade Inferior no Celular) */}
+      {/* Container de Conteúdo Fixo (Esquerda no Desktop / Base inferior no Celular) */}
       <div className="relative z-20 mx-auto w-full max-w-[1360px] h-full px-4 sm:px-8 md:pl-20 lg:pl-24 md:pr-12 flex flex-col justify-end md:justify-center pb-5 md:pb-0 pointer-events-none">
         <div className="w-full md:w-[46%] lg:w-[44%] max-w-[520px] flex flex-col items-start text-left pointer-events-auto">
-          {/* 1. Nome da Marca (pequeno, espaçado, acima do slogan) */}
+          {/* 1. Nome da Marca (eyebrow discreto 12px) */}
           <p
             data-fx="subir"
             style={{ transitionDelay: "80ms" }}
-            className={`order-1 uppercase tracking-[0.2em] md:tracking-[0.28em] text-xs font-semibold mb-1.5 sm:mb-3 transition-colors duration-500 ${
+            className={`order-1 uppercase tracking-[0.18em] md:tracking-[0.28em] text-xs font-semibold mb-1 sm:mb-3 transition-colors duration-500 ${
               entered ? "fx-em-cena" : ""
-            } ${isDarkTone ? "text-marina-100" : "text-marina-700"}`}
+            } ${isDarkTone ? "text-marina-100/90" : "text-marina-700/90"}`}
           >
             {HERO_CONTENT.companyName}
           </p>
 
-          {/* 2. Slogan (h1 em Playfair Display, surge palavra por palavra na carga inicial e não reanima na troca) */}
+          {/* 2. Slogan (h1: 21px suave no mobile, escala editorial no desktop) */}
           <h1
             data-fx="palavras"
-            className={`order-2 font-serif text-[1.75rem] leading-[1.15] sm:text-[2.15rem] md:text-[2.55rem] lg:text-[3rem] md:leading-[1.12] font-normal tracking-[-0.01em] mb-1.5 sm:mb-4 md:mb-7 transition-colors duration-500 ${
+            className={`order-2 font-serif text-[21px] leading-[1.2] sm:text-[26px] md:text-[2.55rem] lg:text-[3rem] md:leading-[1.12] font-normal tracking-[-0.01em] mb-1.5 sm:mb-4 md:mb-7 max-w-[34ch] md:max-w-none transition-colors duration-500 ${
               entered ? "fx-em-cena" : ""
-            } ${isDarkTone ? "text-silk-50" : "text-onyx-950"}`}
+            } ${isDarkTone ? "text-silk-50/95" : "text-onyx-800 md:text-onyx-950"}`}
           >
             {SLOGAN_WORDS.map((word, idx) => (
               <React.Fragment key={idx}>
@@ -275,11 +275,11 @@ export default function Hero({ products }: HeroProps) {
             ))}
           </h1>
 
-          {/* 4. Indicadores Finos (No celular: acima dos botões [order-3]; no desktop: centralizados na base do banner) */}
+          {/* 4. Indicadores Finos (alinhados com o texto no mobile; centralizados na base no desktop) */}
           <div
             role="group"
             aria-label="Indicadores de slides"
-            className="order-3 md:order-none flex items-center gap-0.5 mb-1 sm:mb-3 md:mb-0 md:absolute md:bottom-5 lg:bottom-6 md:left-1/2 md:-translate-x-1/2 z-30"
+            className="order-3 md:order-none flex items-center justify-start gap-0.5 mb-1.5 sm:mb-3 md:mb-0 md:absolute md:bottom-5 lg:bottom-6 md:left-1/2 md:-translate-x-1/2 z-30"
           >
             {slides.map((slide, idx) => {
               const isActive = idx === activeIndex;
@@ -290,17 +290,17 @@ export default function Hero({ products }: HeroProps) {
                   onClick={() => handleSelectSlide(idx)}
                   aria-label={`Ir para o slide ${idx + 1} de ${total}`}
                   aria-current={isActive ? "true" : undefined}
-                  className="group relative flex items-center justify-center min-w-[44px] min-h-[44px] px-1.5 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500 rounded-full"
+                  className="group relative flex items-center justify-center min-w-[32px] md:min-w-[44px] min-h-[44px] px-1 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500 rounded-full"
                 >
                   <span
                     className={`block rounded-full transition-all duration-500 ${
                       isActive
                         ? isDarkTone
-                          ? "w-6 md:w-9 h-[2.5px] md:h-[3px] bg-silk-50 shadow-[0_0_8px_rgba(117,6,106,0.8)]"
-                          : "w-6 md:w-9 h-[2.5px] md:h-[3px] bg-marina-500"
+                          ? "w-5 md:w-9 h-[2px] md:h-[3px] bg-silk-50 shadow-[0_0_8px_rgba(117,6,106,0.8)]"
+                          : "w-5 md:w-9 h-[2px] md:h-[3px] bg-marina-600"
                         : isDarkTone
-                        ? "w-3 md:w-4 h-[2px] bg-silk-50/40 group-hover:bg-silk-50/75"
-                        : "w-3 md:w-4 h-[2px] bg-onyx-950/30 group-hover:bg-marina-500/65"
+                        ? "w-2.5 md:w-4 h-[2px] bg-silk-50/40 group-hover:bg-silk-50/75"
+                        : "w-2.5 md:w-4 h-[2px] bg-onyx-950/25 group-hover:bg-marina-500/65"
                     }`}
                   />
                 </button>
@@ -308,17 +308,17 @@ export default function Hero({ products }: HeroProps) {
             })}
           </div>
 
-          {/* 3. Botões ("Ver Catálogo" principal -> /produtos e WhatsApp secundário) */}
+          {/* 3. Botões ("Ver Catálogo" com largura automática + link WhatsApp discreto ao lado/abaixo) */}
           <div
             data-fx="subir"
             style={{ transitionDelay: "580ms" }}
-            className={`order-4 flex flex-col md:flex-row items-stretch md:items-center gap-1.5 md:gap-3.5 w-full md:w-auto ${
+            className={`order-4 flex flex-row flex-wrap items-center gap-4 md:gap-3.5 w-auto ${
               entered ? "fx-em-cena" : ""
             }`}
           >
             <Link
               href={HERO_CONTENT.primaryCta.href}
-              className="w-full md:w-auto inline-flex items-center justify-center min-h-[46px] sm:min-h-[48px] px-5 sm:px-7 py-2.5 sm:py-3 rounded-full text-sm font-semibold tracking-wide bg-marina-500 text-white hover:bg-marina-600 active:scale-[0.99] transition-all duration-300 shadow-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500 focus-visible:ring-offset-2"
+              className="w-auto inline-flex items-center justify-center min-h-[44px] md:min-h-[48px] px-7 py-2.5 md:py-3 rounded-full text-[15px] md:text-sm font-semibold tracking-wide bg-marina-600 md:bg-marina-500 text-white hover:bg-marina-700 md:hover:bg-marina-600 active:scale-[0.99] transition-all duration-300 shadow-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500 focus-visible:ring-offset-2"
             >
               {HERO_CONTENT.primaryCta.cleanLabel}
             </Link>
@@ -327,8 +327,8 @@ export default function Hero({ products }: HeroProps) {
               href={HERO_CONTENT.secondaryCta.href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`md:hidden inline-flex items-center justify-center min-h-[44px] text-sm font-semibold underline underline-offset-4 transition-colors ${
-                isDarkTone ? "text-silk-50 hover:text-marina-200" : "text-marina-700 hover:text-marina-800"
+              className={`md:hidden inline-flex items-center justify-center min-h-[44px] text-sm font-medium underline underline-offset-4 transition-colors ${
+                isDarkTone ? "text-silk-50/90 hover:text-marina-200" : "text-marina-700 hover:text-marina-800"
               }`}
             >
               Falar no WhatsApp

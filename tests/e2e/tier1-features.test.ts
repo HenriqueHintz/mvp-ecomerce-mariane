@@ -307,9 +307,12 @@ describe("Tier 1 - Feature Coverage", () => {
       "4.5 Product cards render product title, price, 5% PIX discount, and installment terms",
       () => {
         const cardPath = path.join(ROOT_DIR, "src", "components", "ProductCard.tsx");
+        const pricePath = path.join(ROOT_DIR, "src", "components", "ui", "Price.tsx");
         const cardCode = fs.readFileSync(cardPath, "utf-8");
+        const priceCode = fs.readFileSync(pricePath, "utf-8");
 
-        expect(cardCode).toContain("pixPrice", "ProductCard must compute and display PIX price");
+        expect(cardCode).toContain("<Price", "ProductCard must render shared <Price /> component");
+        expect(priceCode).toContain("pixValue", "Price component must compute and display PIX price");
         expect(cardCode).toContain("installments", "ProductCard must display installment terms");
         expect(cardCode).toContain("addItem", "ProductCard must provide quick-add action to cart");
       },

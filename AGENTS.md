@@ -54,7 +54,7 @@ Execute sempre a partir de `C:\Projetos\Mariane Cosmeticos`:
 ## 4. Convenções de Engenharia
 
 1. **Tokens de Design:** Toda estilização deve usar os tokens de [`tailwind.config.ts`](tailwind.config.ts) e [`src/app/globals.css`](src/app/globals.css) documentados em [`docs/DESIGN.md`](docs/DESIGN.md) (`marina-50`..`950` para a escala Roxo/Violeta Imperial `#75066A`/`#9C27B0`/`#4D0046`, `brand-accent` `#EB1E78`, `onyx`, `silk`, `emerald-whatsapp`).
-2. **Fontes no Next.js 15:** Carregar `Playfair Display` e `Plus Jakarta Sans` via `next/font/google` em `src/app/layout.tsx` (nunca via `<link>` manual no `<head>`).
+2. **Fontes no Next.js 15:** Carregar `Playfair Display` e `Inter` via `next/font/google` em `src/app/layout.tsx` (nunca via `<link>` manual no `<head>`).
 3. **Server vs Client Components:** Páginas de catálogo e vitrine (`src/app/**/page.tsx`) buscam dados no servidor via Drizzle ORM; interações de sacola, busca, filtros dinâmicos e carrosséis usam `"use client"`.
 4. **Conversão MVP:** Todo fechamento de pedido no MVP converge para o WhatsApp oficial (`5549991251617`) com mensagem estruturada; pagamento online (PIX/cartão) pertence à Fase 2.
 5. **Tipagem Estrita:** Proibido usar `any` ou `@ts-ignore` em componentes e rotas.

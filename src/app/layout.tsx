@@ -1,22 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import "../../public/fx/sites-incriveis.css";
 import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import MobileBottomNav from "@/components/MobileBottomNav";
+import MobileFloatingActions from "@/components/MobileFloatingActions";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  style: ["normal", "italic"],
+  variable: "--font-serif",
   display: "swap",
 });
 
-const jakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-jakarta",
+  variable: "--font-sans",
   display: "swap",
 });
 
@@ -107,13 +108,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`scroll-smooth ${playfair.variable} ${jakarta.variable}`}>
+    <html lang="pt-BR" className={`scroll-smooth ${playfair.variable} ${inter.variable}`}>
       <body className="min-h-screen flex flex-col bg-silk-50 text-onyx-900 selection:bg-marina-100 selection:text-marina-800">
         <CartProvider>
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
-          <MobileBottomNav />
+          <MobileFloatingActions />
         </CartProvider>
         <Script src="/fx/sites-incriveis.js" strategy="afterInteractive" />
       </body>

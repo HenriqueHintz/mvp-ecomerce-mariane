@@ -5,8 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCartActions } from "@/context/CartContext";
 import { Price } from "@/components/ui";
-import { formatBRL } from "@/lib/pricing";
-import { Check, Eye, MessageCircle, ShoppingBag } from "lucide-react";
+import { Check, Eye, ShoppingBag } from "lucide-react";
 
 export interface ProductCardProps {
   id: string;
@@ -37,7 +36,6 @@ export default function ProductCard({
   installmentCount = 10,
   installmentValue,
   imageUrl = "/products/fallback.webp",
-  isBestSeller,
 }: ProductCardProps) {
   const { addItem } = useCartActions();
   const [imgError, setImgError] = useState(false);
@@ -56,7 +54,6 @@ export default function ProductCard({
   const installments = installmentCount || 10;
   const instVal =
     installmentValue || Math.round((currentPrice / installments) * 100) / 100;
-  const pixPrice = formatBRL(currentPrice * 0.95);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -75,21 +72,6 @@ export default function ProductCard({
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setAdded(false), 1500);
   };
-
-  const handleWhatsAppSingle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const msg = `Olá, Mariane Cosméticos! Gostaria de pedir o produto:\n*${name}*\nMarca: ${brandName || "Profissional"}\nPreço: ${formatBRL(currentPrice)} (ou ${pixPrice} no PIX)\nLink: https://marianecosmeticos.com.br/produto/${slug}`;
-    window.open(
-      `https://wa.me/5549991251617?text=${encodeURIComponent(msg)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
-  };
-
-  const discountPercent = hasRealPromo
-    ? Math.round(((price - promoPrice!) / price) * 100)
-    : 0;
 
   return (
     <article className="group relative min-w-0 bg-white rounded-2xl border border-silk-200 hover:border-marina-300 hover:shadow-luxury-hover transition-all duration-300 flex flex-col justify-between overflow-hidden">
@@ -121,12 +103,6 @@ export default function ProductCard({
           </div>
         )}
 
-        {hasRealPromo && (
-          <span className="absolute top-3 left-3 bg-marina-800 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
-            -{discountPercent}%
-          </span>
-        )}
-
         <span
           aria-hidden="true"
           className="hidden sm:inline-flex items-center gap-1.5 absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/95 text-onyx-950 border border-silk-200 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0 transition-all duration-200 motion-reduce:transition-none whitespace-nowrap"
@@ -139,15 +115,10 @@ export default function ProductCard({
       {/* Corpo do card */}
       <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between gap-3 sm:gap-3.5">
         <div>
-          <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
-            <span className="text-xs font-semibold text-marina-700 truncate">
+          <div className="mb-1.5">
+            <span className="text-xs font-semibold text-marina-700 truncate block">
               {brandName || "Mariane Cosméticos"}
             </span>
-            {isBestSeller === 1 && (
-              <span className="inline-block text-xs font-medium px-2.5 py-0.5 rounded-full bg-silk-100 text-onyx-800 shrink-0">
-                Destaque
-              </span>
-            )}
           </div>
 
           <Link
@@ -162,7 +133,7 @@ export default function ProductCard({
           </Link>
         </div>
 
-        {/* Preço + Ações */}
+        {/* Preço + Ação */}
         <div className="pt-3 border-t border-silk-200/80 flex flex-col gap-3">
           <Price
             price={price}
@@ -171,42 +142,30 @@ export default function ProductCard({
             installmentValue={instVal}
           />
 
-          <div className="flex flex-col gap-2 pt-0.5">
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              className={`w-full min-h-[44px] py-2.5 px-4 rounded-full text-[13px] font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 active:scale-[0.98] ${
-                added
-                  ? "bg-emerald-700 text-white"
-                  : "bg-onyx-950 hover:bg-marina-700 text-white"
-              }`}
-              aria-label={
-                added ? `${name} adicionado à sacola` : `Adicionar ${name} à sacola`
-              }
-            >
-              {added ? (
-                <>
-                  <Check className="w-4 h-4 shrink-0" />
-                  <span>Adicionado ✓</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="w-4 h-4 shrink-0" />
-                  <span>Adicionar</span>
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleWhatsAppSingle}
-              className="flex w-full min-h-[44px] py-2 px-3 rounded-full text-xs sm:text-[13px] font-medium bg-emerald-50 hover:bg-emerald-100 active:scale-[0.98] text-emerald-800 border border-emerald-700/25 items-center justify-center gap-2 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
-              aria-label={`Pedir ${name} pelo WhatsApp`}
-            >
-              <MessageCircle className="w-4 h-4 shrink-0" />
-              <span>Pedir no WhatsApp</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className={`w-full min-h-[44px] py-2.5 px-4 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 active:scale-[0.98] ${
+              added
+                ? "bg-emerald-700 text-white"
+                : "bg-onyx-950 hover:bg-marina-700 text-white"
+            }`}
+            aria-label={
+              added ? `${name} adicionado à sacola` : `Adicionar ${name} à sacola`
+            }
+          >
+            {added ? (
+              <>
+                <Check className="w-4 h-4 shrink-0" />
+                <span>Adicionado ✓</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag className="w-4 h-4 shrink-0" />
+                <span>Adicionar</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </article>

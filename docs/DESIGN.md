@@ -85,8 +85,8 @@ A paleta oficial une o **Roxo/Violeta Imperial** da fachada física da Mariane C
 
 As fontes oficiais são carregadas de forma otimizada via `next/font/google` em `src/app/layout.tsx` (eliminando bloqueio de renderização e garantindo geração determinística do manifesto de build do Next.js 15):
 
-- **Fonte Display / Títulos (`font-serif`):** `Playfair Display` (pesos `400` a `700`, normal e `italic`). Usada em headlines (`h1`, `h2`, `h3`), nomes de produtos em destaque, chamadas editoriais e slogan.
-- **Fonte de Interface / Corpo (`font-sans`):** `Plus Jakarta Sans` (pesos `300` a `700`). Usada em descrições, preços, botões, badges, navegação e formulários.
+- **Fonte Display / Títulos (`font-serif`):** `Playfair Display` (pesos `400` a `700`, normal e `italic`). Usada em headlines (`h1`, `h2`, `h3`), chamadas editoriais e slogan (line-height `1.15–1.25`).
+- **Fonte de Interface / Corpo (`font-sans`):** `Inter` (pesos `400` a `700`). Usada em descrições, preços, botões, badges, navegação e formulários (line-height `1.5–1.6`, mínimo `12px` no mobile).
 
 ### Escala Tipográfica Padronizada
 | Nível | Classes Tailwind | Uso |

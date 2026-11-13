@@ -73,6 +73,7 @@ export function Logo({
           alt={alt}
           width={sizeConfig.w * 2}
           height={sizeConfig.h * 2}
+          sizes="(max-width: 767px) 170px, 240px"
           priority
           className="h-full w-auto object-contain select-none"
         />
@@ -106,6 +107,7 @@ export function Logo({
         alt={alt}
         width={sizeConfig.w * 2}
         height={sizeConfig.h * 2}
+        sizes="(max-width: 767px) 170px, 240px"
         priority
         className="h-full w-auto object-contain select-none transform hover:scale-[1.02] transition-transform duration-200"
       />

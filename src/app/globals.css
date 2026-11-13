@@ -22,6 +22,15 @@
   /* Official WhatsApp & Status */
   --whatsapp-green: #25D366;
   --whatsapp-dark: #128C7E;
+
+  /* Altura total do topo (barra de avisos + header) para Hero em 100svh */
+  --header-h: 92px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-h: 158px;
+  }
 }
 
 html {
@@ -39,17 +48,12 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-jakarta), 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans), 'Inter', system-ui, -apple-system, sans-serif;
   font-kerning: normal;
-  word-spacing: 0.04em;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-}
-
-/* Compensa o encolhimento visual de espaços na Plus Jakarta Sans com letter-spacing */
-[class*="tracking-"] {
-  word-spacing: 0.07em;
 }
 
 /* Mariane Violet Selection Highlight */
@@ -99,15 +103,15 @@ body {
 
   /* Badges & Pills */
   .badge-brand {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-marina-50 text-marina-600 border border-marina-100;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wider uppercase bg-marina-50 text-marina-600 border border-marina-100;
   }
 
   .badge-dark {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-onyx-900 text-marina-200 border border-onyx-800 shadow-sm;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wider uppercase bg-onyx-900 text-marina-200 border border-onyx-800 shadow-sm;
   }
 
   .badge-accent {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-marina-500 text-white shadow-sm;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wider uppercase bg-marina-500 text-white shadow-sm;
   }
 }
 

@@ -64,7 +64,7 @@ export default function BrandCarousel() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
         {/* Cabeçalho Editorial com Destaque de Curadoria */}
         <div className="text-center max-w-2xl mx-auto">
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-marina-700 bg-marina-50/80 px-3.5 py-1 rounded-full border border-marina-100/60 inline-flex items-center gap-1.5 mb-3">
+          <span className="text-xs font-semibold tracking-widest uppercase text-marina-700 bg-marina-50/80 px-3.5 py-1 rounded-full border border-marina-100/60 inline-flex items-center gap-1.5 mb-3">
             <Sparkles className="w-3 h-3 text-marina-600" />
             Curadoria Oficial
           </span>

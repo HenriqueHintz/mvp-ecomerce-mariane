@@ -125,7 +125,143 @@ function IndexCell({ brand, index }: { brand: ShowcaseBrand; index: number }) {
   );
 }
 
-function MobileRail() {
+function MobileBrandGridCarousel() {
+  const railRef = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState(0);
+
+  const page1Top = INDEX_BRANDS.slice(0, 4); // Wella, L'Oréal, Truss, Braé
+  const page2Brands = INDEX_BRANDS.slice(4, 6); // Lola, Amend
+
+  const onScroll = () => {
+    const el = railRef.current;
+    if (!el || el.clientWidth === 0) return;
+    setPage(Math.min(1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth))));
+  };
+
+  const goToPage = (target: number) => {
+    const el = railRef.current;
+    if (!el) return;
+    el.scrollTo({ left: target * el.clientWidth, behavior: "smooth" });
+    setPage(target);
+  };
+
+  const renderBrandCard = (
+    b: ShowcaseBrand,
+    opts: { tall?: boolean; badge?: string; priority?: boolean } = {}
+  ) => {
+    const isDark = b.tone === "escuro";
+    return (
+      <Link
+        key={b.slug}
+        href={b.href}
+        aria-label={`Ver produtos ${b.name}`}
+        className={`relative isolate flex items-center justify-center rounded-2xl overflow-hidden border border-silk-200/80 transition-transform active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marina-700 ${
+          opts.tall ? "col-span-2 h-[130px]" : "h-[112px]"
+        }`}
+      >
+        <Image
+          src={b.scene}
+          alt=""
+          fill
+          sizes={opts.tall ? "92vw" : "46vw"}
+          priority={opts.priority}
+          className="object-cover"
+        />
+        <span
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            background: isDark
+              ? "linear-gradient(to bottom, rgba(18,10,13,.66) 0%, rgba(18,10,13,.46) 100%)"
+              : "linear-gradient(to bottom, rgba(250,247,251,.84) 0%, rgba(250,247,251,.68) 100%)",
+          }}
+        />
+        <span className="relative z-10 flex flex-col items-center justify-center gap-1.5 px-3 text-center">
+          {opts.badge && (
+            <span className="text-xs font-semibold text-marina-700 bg-white/90 px-2.5 py-0.5 rounded-full border border-marina-200/70">
+              {opts.badge}
+            </span>
+          )}
+          <Logo brand={b} scale={opts.tall ? 0.78 : 0.56} color={heroLogoColor(b.tone)} />
+        </span>
+      </Link>
+    );
+  };
+
+  return (
+    <div className="md:hidden">
+      <div
+        ref={railRef}
+        onScroll={onScroll}
+        role="region"
+        aria-roledescription="carrossel"
+        aria-label="Marcas oficiais"
+        className="bs-rail -mx-4 px-4 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-pl-4"
+      >
+        {/* Página 1: 5 cards no padrão 2 + 2 + 1 (Madressenza em destaque) */}
+        <div className="w-full shrink-0 snap-start grid grid-cols-2 gap-3">
+          {page1Top.map((b, i) => renderBrandCard(b, { priority: i < 2 }))}
+          {renderBrandCard(FEATURED_BRAND, {
+            tall: true,
+            badge: "Revendedora Oficial",
+          })}
+        </div>
+
+        {/* Página 2: 4 cards no padrão 2 + 2 */}
+        <div className="w-full shrink-0 snap-start grid grid-cols-2 gap-3">
+          {page2Brands.map((b) => renderBrandCard(b))}
+          <Link
+            href="/produtos"
+            className="h-[112px] rounded-2xl border border-marina-200/80 bg-marina-50 hover:bg-marina-100/70 text-marina-800 flex flex-col items-center justify-center gap-1 px-3 text-center transition-colors active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marina-700"
+          >
+            <span className="font-serif text-lg font-medium text-marina-800">
+              Todas as marcas
+            </span>
+            <span className="text-xs font-semibold text-marina-700">
+              Ver catálogo →
+            </span>
+          </Link>
+          <Link
+            href="/produtos?ordem=promocoes"
+            className="h-[112px] rounded-2xl border border-onyx-800 bg-onyx-950 hover:bg-marina-900 text-white flex flex-col items-center justify-center gap-1 px-3 text-center transition-colors active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marina-700"
+          >
+            <span className="font-serif text-lg font-medium text-white">
+              Promoções
+            </span>
+            <span className="text-xs font-medium text-marina-200">
+              Ofertas da semana →
+            </span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Indicadores de página acessíveis */}
+      <div className="mt-3 flex items-center justify-center gap-1" aria-label="Páginas de marcas">
+        {[0, 1].map((idx) => {
+          const active = page === idx;
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => goToPage(idx)}
+              aria-label={`Página ${idx + 1} de 2`}
+              aria-current={active ? "true" : undefined}
+              className="min-h-[44px] min-w-[32px] flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded-full"
+            >
+              <span
+                className={`block h-2 rounded-full transition-all duration-300 motion-reduce:transition-none ${
+                  active ? "w-6 bg-marina-700" : "w-2 bg-silk-300"
+                }`}
+              />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TabletRail() {
   const railRef = useRef<HTMLUListElement>(null);
   const [active, setActive] = useState(0);
 
@@ -138,7 +274,7 @@ function MobileRail() {
   };
 
   return (
-    <div className="lg:hidden">
+    <div className="hidden md:block lg:hidden">
       <ul
         ref={railRef}
         onScroll={onScroll}
@@ -233,15 +369,29 @@ export default function BrandShowcase() {
       className="brand-showcase bg-luxury-offwhite py-10 sm:py-20 lg:py-24"
     >
       <div className="mx-auto w-full max-w-[1280px] px-4 sm:px-8">
-        <h2
-          id="marcas-titulo"
-          className="bs-reveal mb-5 sm:mb-10 max-w-2xl font-serif text-2xl font-normal leading-snug text-onyx-950 sm:text-4xl lg:mb-14"
-          style={{ ["--i" as string]: 0 }}
-        >
-          Marcas Profissionais &amp; Alta Perfumaria
-        </h2>
+        <div className="mb-5 sm:mb-10 lg:mb-14 flex items-baseline justify-between gap-4">
+          <h2
+            id="marcas-titulo"
+            className="bs-reveal max-w-2xl font-serif text-[22px] font-normal leading-snug text-onyx-950 sm:text-4xl"
+            style={{ ["--i" as string]: 0 }}
+          >
+            <span className="md:hidden">Marcas</span>
+            <span className="hidden md:inline">
+              Marcas Profissionais &amp; Alta Perfumaria
+            </span>
+          </h2>
 
-        <MobileRail />
+          <Link
+            href="/produtos"
+            className="md:hidden inline-flex items-center min-h-[44px] text-[13px] font-semibold text-marina-700 hover:text-marina-900 shrink-0"
+          >
+            Ver todas →
+          </Link>
+        </div>
+
+        <MobileBrandGridCarousel />
+
+        <TabletRail />
 
         <div className="hidden lg:grid lg:grid-cols-12 lg:gap-10">
           <div className="col-span-5">

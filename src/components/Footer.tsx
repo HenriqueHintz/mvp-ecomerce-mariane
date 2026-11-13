@@ -14,7 +14,7 @@ import { Logo } from "./Logo";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#5a189a] text-white border-t border-[#48137a] pt-6 sm:pt-10 pb-24 md:pb-6 mt-2 sm:mt-6">
+    <footer className="bg-[#5a189a] text-white border-t border-[#48137a] pt-6 sm:pt-10 pb-8 md:pb-6 mt-2 sm:mt-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 md:space-y-8">
         {/* Benefit Highlights - Apenas Desktop (no mobile já está na barra de avisos) */}
         <div className="hidden md:grid md:grid-cols-3 gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
@@ -24,7 +24,7 @@ export default function Footer() {
             </div>
             <div className="text-left text-xs leading-tight">
               <span className="block font-bold text-white">Frete Grátis</span>
-              <span className="text-white/75 text-[11px]">A partir de R$ 199 para todo o Brasil</span>
+              <span className="text-white/75 text-xs">A partir de R$ 199 para todo o Brasil</span>
             </div>
           </div>
 
@@ -34,7 +34,7 @@ export default function Footer() {
             </div>
             <div className="text-left text-xs leading-tight">
               <span className="block font-bold text-white">Até 10x Sem Juros</span>
-              <span className="text-white/75 text-[11px]">Ou 5% de desconto à vista no PIX</span>
+              <span className="text-white/75 text-xs">Ou 5% de desconto à vista no PIX</span>
             </div>
           </div>
 
@@ -44,7 +44,7 @@ export default function Footer() {
             </div>
             <div className="text-left text-xs leading-tight">
               <span className="block font-bold text-white">Atendimento Humanizado</span>
-              <span className="text-white/75 text-[11px]">Dúvidas e pedidos no WhatsApp</span>
+              <span className="text-white/75 text-xs">Dúvidas e pedidos no WhatsApp</span>
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function Footer() {
 
           {/* Desktop Coluna 2: Categorias */}
           <div className="hidden md:block space-y-2.5">
-            <h4 className="font-bold tracking-wider uppercase text-white text-[11px]">Categorias</h4>
+            <h4 className="font-bold tracking-wider uppercase text-white text-xs">Categorias</h4>
             <ul className="space-y-1.5 text-white/75">
               <li><Link href="/categoria/tratamento-mascaras" className="hover:text-white transition-colors">Tratamento & Máscaras</Link></li>
               <li><Link href="/categoria/cronograma-capilar" className="hover:text-white transition-colors">Cronograma Capilar</Link></li>
@@ -162,7 +162,7 @@ export default function Footer() {
 
           {/* Desktop Coluna 3: Marcas Oficiais */}
           <div className="hidden md:block space-y-2.5">
-            <h4 className="font-bold tracking-wider uppercase text-white text-[11px]">Marcas Oficiais</h4>
+            <h4 className="font-bold tracking-wider uppercase text-white text-xs">Marcas Oficiais</h4>
             <ul className="space-y-1.5 text-white/75">
               <li><Link href="/produtos?marca=madressenza" className="hover:text-white transition-colors font-semibold text-white">Madressenza (Revendedora Oficial)</Link></li>
               <li><Link href="/produtos?marca=wella-profissional" className="hover:text-white transition-colors">Wella Profissional</Link></li>
@@ -176,7 +176,7 @@ export default function Footer() {
 
           {/* Desktop Coluna 4: Ajuda & Segurança */}
           <div className="hidden md:block space-y-2.5">
-            <h4 className="font-bold tracking-wider uppercase text-white text-[11px]">Ajuda & Segurança</h4>
+            <h4 className="font-bold tracking-wider uppercase text-white text-xs">Ajuda & Segurança</h4>
             <ul className="space-y-1.5 text-white/75">
               <li><Link href="/carrinho" className="hover:text-white transition-colors">Minha Sacola</Link></li>
               <li><Link href="/atendimento" className="hover:text-white transition-colors">Fale Conosco</Link></li>
@@ -184,7 +184,7 @@ export default function Footer() {
               <li><Link href="/trocas-e-devolucoes" className="hover:text-white transition-colors">Trocas & Devoluções</Link></li>
             </ul>
             <div className="pt-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/15 text-[11px] text-white">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/15 text-xs text-white">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
                 <span>Site Seguro &amp; Criptografado</span>
               </div>
@@ -193,7 +193,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="pt-4 border-t border-white/15 text-center text-xs md:text-[11px] text-white/75 md:text-white/60">
+        <div className="pt-4 border-t border-white/15 text-center text-xs text-white/75 md:text-white/60">
           <p>© 2026 Mariane Cosméticos. Todos os direitos reservados.</p>
         </div>
       </div>

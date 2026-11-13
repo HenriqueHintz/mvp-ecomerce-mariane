@@ -399,7 +399,10 @@ export default function CheckoutPage() {
         </div>
 
         {/* Barra sticky de finalização no mobile */}
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-silk-200 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(26,9,24,0.08)]">
+        <div
+          data-mobile-sticky-bar="true"
+          className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-silk-200 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(26,9,24,0.08)]"
+        >
           <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
             <div className="min-w-0">
               <span className="block text-xs text-onyx-600 font-medium">Total do pedido</span>

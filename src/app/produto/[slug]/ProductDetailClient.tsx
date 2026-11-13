@@ -309,30 +309,30 @@ export default function ProductDetailClient({
         <div className="grid grid-cols-3 gap-3 pt-4 border-t border-silk-200 text-center">
           <div className="p-3 bg-white rounded-xl border border-silk-200">
             <Truck className="w-5 h-5 text-marina-600 mx-auto mb-1" />
-            <span className="text-[11px] font-semibold text-onyx-900 block">
+            <span className="text-xs font-semibold text-onyx-900 block">
               Frete Grátis
             </span>
-            <span className="text-[10px] text-onyx-700">
+            <span className="text-xs text-onyx-700">
               A partir de R$ 199
             </span>
           </div>
 
           <div className="p-3 bg-white rounded-xl border border-silk-200">
             <ShieldCheck className="w-5 h-5 text-emerald-whatsapp mx-auto mb-1" />
-            <span className="text-[11px] font-semibold text-onyx-900 block">
+            <span className="text-xs font-semibold text-onyx-900 block">
               100% Original
             </span>
-            <span className="text-[10px] text-onyx-700">
+            <span className="text-xs text-onyx-700">
               Procedência oficial
             </span>
           </div>
 
           <div className="p-3 bg-white rounded-xl border border-silk-200">
             <CreditCard className="w-5 h-5 text-marina-600 mx-auto mb-1" />
-            <span className="text-[11px] font-semibold text-onyx-900 block">
+            <span className="text-xs font-semibold text-onyx-900 block">
               Até 10x
             </span>
-            <span className="text-[10px] text-onyx-700">
+            <span className="text-xs text-onyx-700">
               Sem juros no cartão
             </span>
           </div>
@@ -363,7 +363,10 @@ export default function ProductDetailClient({
       </div>
 
       {/* Barra Fixa Inferior no Mobile: Preço + Adicionar à sacola */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-silk-200 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(26,9,24,0.08)]">
+      <div
+        data-mobile-sticky-bar="true"
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-silk-200 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(26,9,24,0.08)]"
+      >
         <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
           <div className="min-w-0">
             <span className="block text-xs text-emerald-800 font-semibold tabular-nums">

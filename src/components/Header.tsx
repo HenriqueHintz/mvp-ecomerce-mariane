@@ -16,9 +16,6 @@ import {
   Truck,
   Search,
   Instagram,
-  PackageSearch,
-  Sparkles,
-  Tag,
 } from "lucide-react";
 
 const CartDrawer = dynamic(() => import("./CartDrawer"), { ssr: false });
@@ -238,7 +235,7 @@ export default function Header() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-[44px_1fr_auto] md:flex md:items-center md:justify-between h-14 md:h-28 gap-2 md:gap-3 lg:gap-6">
+          <div className="grid grid-cols-[44px_1fr_auto] md:flex md:items-center md:justify-between h-[60px] md:h-28 gap-2 md:gap-3 lg:gap-6">
             {/* Mobile Menu Toggle (44x44) */}
             <button
               ref={menuTriggerRef}
@@ -251,7 +248,7 @@ export default function Header() {
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            {/* Brand Logo Integration — Mobile centralizado escuro sobre branco; Desktop grande branco sobre roxo */}
+            {/* Brand Logo Integration — Mobile 44px nítido centralizado sobre branco; Desktop grande branco sobre roxo */}
             <Link
               href="/"
               className="inline-flex items-center justify-self-center md:justify-self-start group transition-transform duration-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 md:focus-visible:ring-white/50 rounded-lg py-1 shrink-0"
@@ -261,7 +258,7 @@ export default function Header() {
                 variant="horizontal"
                 size="sm"
                 tone="dark"
-                className="md:hidden !h-9 w-auto"
+                className="md:hidden !h-11 w-auto"
                 alt="Mariane Cosméticos"
               />
               <Logo
@@ -339,7 +336,7 @@ export default function Header() {
                 <ShoppingBag className="w-6 h-6" aria-hidden="true" />
                 {totalItems > 0 && (
                   <span
-                    className={`absolute top-1 right-1 bg-marina-600 text-white md:bg-white md:text-[#7b2cbf] text-[11px] font-bold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center border-2 border-white md:border-[#7b2cbf] shadow-sm tabular-nums transition-transform duration-200 motion-reduce:transition-none ${
+                    className={`absolute top-1 right-1 bg-marina-600 text-white md:bg-white md:text-[#7b2cbf] text-xs font-bold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center border-2 border-white md:border-[#7b2cbf] shadow-sm tabular-nums transition-transform duration-200 motion-reduce:transition-none ${
                       badgePulsing ? "scale-125" : "scale-100"
                     }`}
                   >
@@ -406,9 +403,9 @@ export default function Header() {
               }
               touchStartX.current = null;
             }}
-            className="relative z-10 w-[86vw] max-w-sm h-full bg-white text-onyx-950 shadow-2xl flex flex-col overflow-hidden"
+            className="relative z-10 w-[85vw] max-w-sm h-full bg-white text-onyx-950 shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Topo do Drawer: Título simples + botão X 44px sem moldura */}
+            {/* 1. Cabeçalho: "Menu" + botão fechar (44px) */}
             <div className="flex items-center justify-between px-4 h-14 border-b border-silk-200 shrink-0">
               <span className="font-serif text-lg font-medium text-onyx-950">Menu</span>
               <button
@@ -422,8 +419,8 @@ export default function Header() {
             </div>
 
             {/* Corpo rolável do drawer */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-              {/* Campo de busca no topo */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+              {/* 2. Campo de busca */}
               <form onSubmit={handleMobileSearchSubmit} role="search" className="relative">
                 <label htmlFor="mobile-drawer-search" className="sr-only">
                   Buscar cosméticos no catálogo
@@ -437,127 +434,112 @@ export default function Header() {
                   type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar shampoo, máscara, perfume..."
+                  placeholder="Buscar produtos ou marcas..."
                   className="w-full min-h-[44px] pl-10 pr-4 rounded-xl bg-silk-50 border border-silk-200 text-sm text-onyx-950 placeholder:text-onyx-500 focus:outline-none focus:ring-2 focus:ring-marina-600 focus:bg-white"
                 />
               </form>
 
-              {/* Links rápidos */}
-              <ul className="divide-y divide-silk-200/70 border border-silk-200 rounded-2xl overflow-hidden bg-white">
-                <li>
-                  <Link
-                    href="/produtos"
-                    onClick={closeMobileMenu}
-                    className="flex items-center justify-between min-h-[46px] px-4 text-sm font-semibold text-marina-700 hover:bg-marina-50 transition-colors"
-                  >
-                    <span className="inline-flex items-center gap-2.5">
-                      <Sparkles className="w-4 h-4" aria-hidden="true" />
+              {/* 3. Links principais (lista simples 48px com divisórias finas, sem cards aninhados) */}
+              <nav aria-label="Navegação principal mobile">
+                <ul className="divide-y divide-silk-200/80 border-b border-silk-200/80">
+                  <li>
+                    <Link
+                      href="/produtos"
+                      onClick={closeMobileMenu}
+                      className="flex items-center justify-between min-h-[48px] px-1 text-[15px] font-semibold text-marina-700 hover:text-marina-900 transition-colors"
+                    >
                       <span>Todos os produtos</span>
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-marina-600" aria-hidden="true" />
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/produtos?ordem=promocoes"
-                    onClick={closeMobileMenu}
-                    className="flex items-center justify-between min-h-[46px] px-4 text-sm font-medium text-onyx-900 hover:bg-silk-50 transition-colors"
-                  >
-                    <span className="inline-flex items-center gap-2.5">
-                      <Tag className="w-4 h-4 text-brand-accent" aria-hidden="true" />
+                      <ChevronRight className="w-4 h-4 text-marina-600" aria-hidden="true" />
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/produtos?ordem=promocoes"
+                      onClick={closeMobileMenu}
+                      className="flex items-center justify-between min-h-[48px] px-1 text-[15px] font-medium text-onyx-900 hover:text-marina-700 transition-colors"
+                    >
                       <span>Promoções</span>
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-onyx-500" aria-hidden="true" />
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/atendimento"
-                    onClick={closeMobileMenu}
-                    className="flex items-center justify-between min-h-[46px] px-4 text-sm font-medium text-onyx-900 hover:bg-silk-50 transition-colors"
-                  >
-                    <span className="inline-flex items-center gap-2.5">
-                      <PackageSearch className="w-4 h-4 text-marina-600" aria-hidden="true" />
-                      <span>Rastrear pedido &amp; Atendimento</span>
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-onyx-500" aria-hidden="true" />
-                  </Link>
-                </li>
-              </ul>
-
-              {/* Acordeão: Categorias */}
-              <details className="group rounded-2xl border border-silk-200 bg-white overflow-hidden" open>
-                <summary className="flex items-center justify-between min-h-[48px] px-4 text-sm font-semibold text-onyx-950 cursor-pointer list-none select-none hover:bg-silk-50">
-                  <span>Categorias</span>
-                  <ChevronDown
-                    className="w-4 h-4 text-onyx-600 transition-transform duration-200 group-open:rotate-180"
-                    aria-hidden="true"
-                  />
-                </summary>
-                <ul className="border-t border-silk-100 divide-y divide-silk-100">
-                  {CATEGORY_LINKS.map((cat) => (
-                    <li key={cat.href}>
-                      <Link
-                        href={cat.href}
-                        onClick={closeMobileMenu}
-                        className="flex items-center justify-between min-h-[44px] px-4 text-sm text-onyx-800 hover:bg-marina-50 hover:text-marina-700 transition-colors"
-                      >
-                        <span>{cat.label}</span>
-                        <ChevronRight className="w-4 h-4 text-onyx-400" aria-hidden="true" />
-                      </Link>
-                    </li>
-                  ))}
+                      <ChevronRight className="w-4 h-4 text-onyx-500" aria-hidden="true" />
+                    </Link>
+                  </li>
+                  <li>
+                    <details className="group">
+                      <summary className="flex items-center justify-between min-h-[48px] px-1 text-[15px] font-medium text-onyx-900 cursor-pointer list-none select-none hover:text-marina-700">
+                        <span>Marcas</span>
+                        <ChevronDown
+                          className="w-4 h-4 text-onyx-600 transition-transform duration-200 group-open:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </summary>
+                      <ul className="pb-2 pl-2 divide-y divide-silk-100">
+                        {brandLinks.map((link) => (
+                          <li key={link.href}>
+                            <Link
+                              href={link.href}
+                              onClick={closeMobileMenu}
+                              className="flex items-center justify-between min-h-[44px] px-2 text-sm text-onyx-800 hover:text-marina-700 transition-colors"
+                            >
+                              <span>{link.label}</span>
+                              <ChevronRight className="w-4 h-4 text-onyx-400" aria-hidden="true" />
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </li>
+                  <li>
+                    <details className="group">
+                      <summary className="flex items-center justify-between min-h-[48px] px-1 text-[15px] font-medium text-onyx-900 cursor-pointer list-none select-none hover:text-marina-700">
+                        <span>Categorias</span>
+                        <ChevronDown
+                          className="w-4 h-4 text-onyx-600 transition-transform duration-200 group-open:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </summary>
+                      <ul className="pb-2 pl-2 divide-y divide-silk-100">
+                        {CATEGORY_LINKS.map((cat) => (
+                          <li key={cat.href}>
+                            <Link
+                              href={cat.href}
+                              onClick={closeMobileMenu}
+                              className="flex items-center justify-between min-h-[44px] px-2 text-sm text-onyx-800 hover:text-marina-700 transition-colors"
+                            >
+                              <span>{cat.label}</span>
+                              <ChevronRight className="w-4 h-4 text-onyx-400" aria-hidden="true" />
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </li>
                 </ul>
-              </details>
-
-              {/* Acordeão: Marcas */}
-              <details className="group rounded-2xl border border-silk-200 bg-white overflow-hidden">
-                <summary className="flex items-center justify-between min-h-[48px] px-4 text-sm font-semibold text-onyx-950 cursor-pointer list-none select-none hover:bg-silk-50">
-                  <span>Marcas Oficiais</span>
-                  <ChevronDown
-                    className="w-4 h-4 text-onyx-600 transition-transform duration-200 group-open:rotate-180"
-                    aria-hidden="true"
-                  />
-                </summary>
-                <ul className="border-t border-silk-100 divide-y divide-silk-100">
-                  {brandLinks.map((link) => (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        onClick={closeMobileMenu}
-                        className="flex items-center justify-between min-h-[44px] px-4 text-sm text-onyx-800 hover:bg-marina-50 hover:text-marina-700 transition-colors"
-                      >
-                        <span>{link.label}</span>
-                        <ChevronRight className="w-4 h-4 text-onyx-400" aria-hidden="true" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-
-              {/* Linha discreta única de credenciais */}
-              <p className="text-xs text-onyx-600 text-center pt-1">
-                Revendedora Oficial Madressenza &bull; Lages – SC
-              </p>
+              </nav>
             </div>
 
-            {/* Rodapé do Menu: WhatsApp oficial + Instagram */}
-            <div className="p-4 border-t border-silk-200 bg-silk-50/70 pb-[max(1rem,env(safe-area-inset-bottom))] flex items-center gap-2.5 shrink-0">
-              <a
-                href="https://wa.me/5549991251617?text=Ol%C3%A1%2C%20Mariane%20Cosm%C3%A9ticos!%20Gostaria%20de%20atendimento%20personalizado."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold shadow-sm transition-colors"
-              >
-                <MessageCircle className="w-4 h-4 fill-white shrink-0" aria-hidden="true" />
-                <span>WhatsApp</span>
-              </a>
+            {/* 4. Rodapé: "Rastrear pedido" e "Atendimento" como links pequenos + ícone do Instagram */}
+            <div className="px-4 py-3 border-t border-silk-200 bg-silk-50/70 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-4 text-[13px] font-medium text-onyx-700">
+                <Link
+                  href="/atendimento"
+                  onClick={closeMobileMenu}
+                  className="min-h-[44px] inline-flex items-center hover:text-marina-700 transition-colors"
+                >
+                  Rastrear pedido
+                </Link>
+                <Link
+                  href="/atendimento"
+                  onClick={closeMobileMenu}
+                  className="min-h-[44px] inline-flex items-center hover:text-marina-700 transition-colors"
+                >
+                  Atendimento
+                </Link>
+              </div>
               <a
                 href="https://www.instagram.com/mariane_cosmeticos_01/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram @mariane_cosmeticos_01"
-                className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-full bg-white border border-silk-200 text-onyx-900 hover:border-marina-300 hover:text-marina-700 transition-colors"
+                className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-full text-onyx-800 hover:bg-silk-200/70 hover:text-marina-700 transition-colors"
               >
                 <Instagram className="w-5 h-5" aria-hidden="true" />
               </a>
