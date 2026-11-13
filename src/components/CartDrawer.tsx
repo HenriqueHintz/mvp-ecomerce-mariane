@@ -65,7 +65,7 @@ export default function CartDrawer() {
         trigger.focus();
       }
     }, TRANSITION_MS);
-    return () => window.cancelAnimationFrame(timer);
+    return () => window.clearTimeout(timer);
   }, [isCartOpen]);
 
   // Trava scroll do body e gerencia Esc + focus trap

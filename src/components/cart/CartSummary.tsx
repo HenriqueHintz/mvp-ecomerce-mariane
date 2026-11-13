@@ -92,7 +92,7 @@ export default function CartSummary({
           <Link
             href="/carrinho"
             onClick={onFullCartClick}
-            className="block w-full text-center text-xs sm:text-[13px] font-semibold text-marina-700 hover:text-marina-900 py-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
+            className="block w-full text-center text-xs sm:text-[13px] font-semibold text-marina-700 hover:text-marina-900 py-2 rounded-lg [word-spacing:0.05em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
           >
             Ver sacola completa
           </Link>
