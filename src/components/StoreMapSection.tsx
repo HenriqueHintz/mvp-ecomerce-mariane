@@ -72,41 +72,68 @@ export default function StoreMapSection() {
 
   return (
     <section
-      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12"
+      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12"
       id="loja-fisica"
       aria-labelledby="loja-fisica-titulo"
     >
       <div className="bg-white rounded-3xl border border-silk-200 shadow-luxury-card overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12">
           {/* Coluna 1: Informações e Ações */}
-          <div className="order-1 lg:col-span-6 p-6 sm:p-8 lg:p-10 flex flex-col justify-between gap-6 bg-gradient-to-b from-white via-silk-50/40 to-marina-50/25">
-            <div>
+          <div className="order-1 lg:col-span-6 p-4 sm:p-8 lg:p-10 flex flex-col justify-between gap-4 sm:gap-6 bg-gradient-to-b from-white via-silk-50/40 to-marina-50/25">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h2
                 id="loja-fisica-titulo"
-                className="font-serif text-2xl sm:text-3xl font-bold text-onyx-950 tracking-tight leading-snug [word-spacing:0.04em]"
+                className="font-serif text-2xl font-normal sm:text-3xl sm:font-bold text-onyx-950 tracking-tight leading-snug [word-spacing:0.04em]"
               >
                 Venha nos visitar em Lages
               </h2>
+              {isOpenNow !== null && (
+                <span
+                  className={`md:hidden inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                    isOpenNow
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      : "bg-silk-100 text-onyx-700 border-silk-200"
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isOpenNow ? "bg-emerald-600" : "bg-onyx-500"
+                    }`}
+                    aria-hidden="true"
+                  />
+                  {isOpenNow ? "Aberto agora" : "Fechado agora"}
+                </span>
+              )}
             </div>
 
             {/* Dados Práticos de Localização com divisórias sutis */}
             <div className="divide-y divide-silk-200/80 border-t border-b border-silk-200/80">
-              {/* Endereço */}
-              <div className="grid grid-cols-[40px_1fr] items-start gap-3.5 py-4">
+              {/* Endereço (tocável no mobile para copiar) */}
+              <div className="grid grid-cols-[40px_1fr] items-start gap-3.5 py-3.5 sm:py-4">
                 <div className="w-10 h-10 bg-marina-100 text-marina-700 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
                   <MapPin className="w-5 h-5" aria-hidden="true" />
                 </div>
-                <div className="min-w-0">
-                  <h3 className="text-xs sm:text-[13px] font-bold tracking-[0.03em] text-onyx-700 [word-spacing:0.06em]">
-                    Endereço
-                  </h3>
-                  <p className="text-[15px] sm:text-base font-semibold text-onyx-950 mt-1 leading-snug [word-spacing:0.05em]">
+                <button
+                  type="button"
+                  onClick={handleCopyAddress}
+                  aria-label="Copiar endereço: Rua Blumenau, Nº 623, Lages – SC, CEP 88505-300"
+                  className="min-w-0 text-left group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-xs sm:text-[13px] font-bold tracking-[0.03em] text-onyx-700">
+                      Endereço
+                    </h3>
+                    <span className="md:hidden text-xs font-medium text-marina-700">
+                      {copied ? "Copiado ✓" : "Toque p/ copiar"}
+                    </span>
+                  </div>
+                  <p className="text-[15px] sm:text-base font-semibold text-onyx-950 mt-0.5 leading-snug">
                     Rua Blumenau, Nº 623
                   </p>
-                  <p className="text-sm text-onyx-700 mt-0.5 leading-snug [word-spacing:0.06em]">
-                    Lages – SC &bull; CEP 88505-300
+                  <p className="text-sm text-onyx-700 mt-0.5 leading-snug">
+                    Lages – SC &bull; <span className="whitespace-nowrap">CEP 88505-300</span>
                   </p>
-                </div>
+                </button>
               </div>
 
               {/* Horário */}
@@ -121,7 +148,7 @@ export default function StoreMapSection() {
                     </h3>
                     {isOpenNow !== null && (
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border [word-spacing:0.05em] ${
+                        className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border [word-spacing:0.05em] ${
                           isOpenNow
                             ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                             : "bg-silk-100 text-onyx-700 border-silk-200"
@@ -140,18 +167,20 @@ export default function StoreMapSection() {
 
                   <dl className="mt-2 space-y-1.5 text-[15px] text-onyx-900">
                     <div className="flex items-center justify-between gap-4">
-                      <dt className="font-medium text-onyx-800 [word-spacing:0.05em]">
-                        Segunda a Sexta
+                      <dt className="font-medium text-onyx-800 whitespace-nowrap">
+                        <span className="md:hidden">Seg–Sex</span>
+                        <span className="hidden md:inline">Segunda a Sexta</span>
                       </dt>
-                      <dd className="font-semibold text-onyx-950 tabular-nums whitespace-nowrap [word-spacing:0.05em]">
+                      <dd className="font-semibold text-onyx-950 tabular-nums whitespace-nowrap">
                         09h às 18h30
                       </dd>
                     </div>
                     <div className="flex items-center justify-between gap-4">
-                      <dt className="font-medium text-onyx-800 [word-spacing:0.05em]">
-                        Sábado
+                      <dt className="font-medium text-onyx-800 whitespace-nowrap">
+                        <span className="md:hidden">Sáb</span>
+                        <span className="hidden md:inline">Sábado</span>
                       </dt>
-                      <dd className="font-semibold text-onyx-950 tabular-nums whitespace-nowrap [word-spacing:0.05em]">
+                      <dd className="font-semibold text-onyx-950 tabular-nums whitespace-nowrap">
                         09h às 13h
                       </dd>
                     </div>
@@ -184,12 +213,12 @@ export default function StoreMapSection() {
             </div>
 
             {/* Ações de Rota Direta */}
-            <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 pt-1">
+            <div className="flex flex-row flex-wrap gap-2.5 pt-1">
               <a
                 href={googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:flex-1 min-h-[44px] bg-marina-600 hover:bg-marina-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm tracking-normal [word-spacing:0.06em] transition-colors shadow-marina-sm flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2"
+                className="flex-1 min-h-[44px] bg-marina-600 hover:bg-marina-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm tracking-normal transition-colors shadow-marina-sm flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2"
               >
                 <Navigation className="w-4 h-4 shrink-0" aria-hidden="true" />
                 <span>Como chegar</span>
@@ -199,7 +228,7 @@ export default function StoreMapSection() {
                 href={wazeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto sm:min-w-[124px] min-h-[44px] bg-white hover:bg-marina-50 text-onyx-950 font-semibold py-2.5 px-4 rounded-xl text-sm tracking-normal [word-spacing:0.06em] transition-colors flex items-center justify-center gap-2 border border-onyx-300 hover:border-marina-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2"
+                className="w-auto sm:min-w-[124px] min-h-[44px] bg-white hover:bg-marina-50 text-onyx-950 font-semibold py-2.5 px-4 rounded-xl text-sm tracking-normal transition-colors flex items-center justify-center gap-2 border border-onyx-300 hover:border-marina-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2"
               >
                 <span>Waze</span>
                 <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -209,7 +238,7 @@ export default function StoreMapSection() {
                 type="button"
                 onClick={handleCopyAddress}
                 aria-label="Copiar endereço da loja"
-                className="w-full sm:w-auto min-h-[44px] bg-silk-50 hover:bg-silk-100 text-onyx-800 font-medium py-2.5 px-3.5 rounded-xl text-xs sm:text-[13px] tracking-normal [word-spacing:0.06em] transition-colors flex items-center justify-center gap-1.5 border border-silk-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2"
+                className="hidden md:flex w-auto min-h-[44px] bg-silk-50 hover:bg-silk-100 text-onyx-800 font-medium py-2.5 px-3.5 rounded-xl text-[13px] tracking-normal transition-colors items-center justify-center gap-1.5 border border-silk-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2"
               >
                 {copied ? (
                   <>
@@ -227,7 +256,7 @@ export default function StoreMapSection() {
           </div>
 
           {/* Coluna 2: Google Maps Embed Interativo */}
-          <div className="order-2 lg:col-span-6 relative h-[260px] sm:h-[340px] lg:h-full lg:min-h-[420px] bg-silk-100 border-t lg:border-t-0 lg:border-l border-silk-200">
+          <div className="order-2 lg:col-span-6 relative h-[220px] sm:h-[340px] lg:h-full lg:min-h-[420px] bg-silk-100 border-t lg:border-t-0 lg:border-l border-silk-200 rounded-b-3xl lg:rounded-b-none lg:rounded-r-3xl overflow-hidden">
             <iframe
               title="Localização Mariane Cosméticos - Rua Blumenau, 623, Lages - SC"
               src={`https://maps.google.com/maps?q=${encodeURIComponent(

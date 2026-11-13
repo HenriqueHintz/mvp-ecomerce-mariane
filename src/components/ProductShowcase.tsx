@@ -163,14 +163,14 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
     <section
       ref={sectionRef}
       aria-labelledby="vitrine-titulo"
-      className="vitrine-showcase bg-luxury-offwhite py-12 sm:py-16 lg:py-20 border-b border-silk-200/80"
+      className="vitrine-showcase bg-luxury-offwhite py-10 sm:py-16 lg:py-20 border-b border-silk-200/80"
     >
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Cabeçalho da seção */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4 sm:mb-8">
           <h2
             id="vitrine-titulo"
-            className="font-serif text-3xl sm:text-4xl font-bold text-onyx-950 tracking-tight leading-tight"
+            className="font-serif text-2xl font-normal sm:text-4xl sm:font-bold text-onyx-950 tracking-tight leading-snug"
           >
             Mais Vendidos &amp; Destaques
           </h2>
@@ -214,35 +214,41 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
           </div>
         </div>
 
-        {/* Abas de filtro (role="tablist") */}
-        <div
-          role="tablist"
-          aria-label="Filtrar produtos da vitrine"
-          className="bs-rail -mx-4 px-4 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto pb-2 mb-6 sm:mb-8"
-        >
-          {tabs.map((tab, idx) => {
-            const selected = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                id={`vitrine-tab-${tab.id}`}
-                role="tab"
-                type="button"
-                aria-selected={selected}
-                aria-controls="vitrine-painel"
-                tabIndex={selected ? 0 : -1}
-                onClick={() => handleTabChange(tab.id)}
-                onKeyDown={(e) => handleTabKeyDown(e, idx)}
-                className={`shrink-0 min-h-[44px] px-4 rounded-full text-xs sm:text-[13px] font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 ${
-                  selected
-                    ? "bg-marina-700 text-white shadow-xs"
-                    : "bg-white text-onyx-800 border border-silk-200 hover:border-marina-400 hover:text-marina-800"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+        {/* Abas de filtro (role="tablist") com fade lateral no mobile */}
+        <div className="relative mb-5 sm:mb-8">
+          <div
+            role="tablist"
+            aria-label="Filtrar produtos da vitrine"
+            className="bs-rail -mx-4 px-4 pr-10 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto pb-1.5"
+          >
+            {tabs.map((tab, idx) => {
+              const selected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  id={`vitrine-tab-${tab.id}`}
+                  role="tab"
+                  type="button"
+                  aria-selected={selected}
+                  aria-controls="vitrine-painel"
+                  tabIndex={selected ? 0 : -1}
+                  onClick={() => handleTabChange(tab.id)}
+                  onKeyDown={(e) => handleTabKeyDown(e, idx)}
+                  className={`shrink-0 min-h-[44px] px-4 rounded-full text-xs sm:text-[13px] font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 ${
+                    selected
+                      ? "bg-marina-700 text-white shadow-xs"
+                      : "bg-white text-onyx-800 border border-silk-200 hover:border-marina-400 hover:text-marina-800"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+          <div
+            aria-hidden="true"
+            className="md:hidden pointer-events-none absolute inset-y-0 -right-4 w-10 bg-gradient-to-l from-luxury-offwhite to-transparent"
+          />
         </div>
 
         {/* Painel da vitrine */}
@@ -251,54 +257,13 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
           role="tabpanel"
           aria-labelledby={`vitrine-tab-${activeTab}`}
         >
-          {/* Mobile: Carrossel horizontal com scroll-snap */}
-          <div
-            className="md:hidden"
-            role="region"
-            aria-roledescription="carousel"
-            aria-label="Produtos em destaque"
-          >
-            <div
-              ref={railRef}
-              onScroll={handleMobileScroll}
-              className="bs-rail -mx-4 px-4 flex snap-x snap-mandatory scroll-pl-4 gap-3.5 overflow-x-auto pb-4"
-            >
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="w-[78%] max-w-[304px] shrink-0 snap-start"
-                >
-                  <ProductCard {...product} />
-                </div>
+          {/* Mobile: Grade compacta de 2 colunas para escaneabilidade e comparação */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-2 gap-3">
+              {filteredProducts.slice(0, 6).map((product) => (
+                <ProductCard key={product.id} {...product} />
               ))}
             </div>
-
-            {/* Indicadores de posição */}
-            {filteredProducts.length > 1 && (
-              <div
-                className="mt-2 flex items-center justify-center gap-1.5"
-                aria-label="Posição no carrossel"
-              >
-                {filteredProducts.slice(0, 8).map((product, idx) => (
-                  <button
-                    key={product.id}
-                    type="button"
-                    onClick={() => scrollToMobileIndex(idx)}
-                    aria-label={`Ir para produto ${idx + 1}`}
-                    aria-current={mobileIndex === idx ? "true" : undefined}
-                    className="min-h-[24px] px-0.5 flex items-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded"
-                  >
-                    <span
-                      className={`block h-1 rounded-full transition-all duration-300 ${
-                        mobileIndex === idx
-                          ? "w-6 bg-marina-700"
-                          : "w-3 bg-silk-300"
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* CTA mobile no fim da seção */}
             <div className="mt-5">

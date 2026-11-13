@@ -282,7 +282,7 @@ export default function CheckoutPage() {
 
   return (
     <CheckoutContext.Provider value={contextValue}>
-      <main className="min-h-screen bg-luxury-offwhite py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-luxury-offwhite py-6 sm:py-12 pb-28 lg:pb-12 px-4 sm:px-6 lg:px-8">
         {/* Honeypot Invisível para Bots */}
         <input
           type="text"
@@ -396,6 +396,26 @@ export default function CheckoutPage() {
 
           {/* Sinais de Confiança Reais */}
           <CheckoutTrustSignals />
+        </div>
+
+        {/* Barra sticky de finalização no mobile */}
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-silk-200 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(26,9,24,0.08)]">
+          <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <span className="block text-xs text-onyx-600 font-medium">Total do pedido</span>
+              <span className="block text-lg font-bold text-onyx-950 tabular-nums leading-tight">
+                {quote ? formatBrl(quote.totalCents) : "..."}
+              </span>
+            </div>
+            <button
+              type="button"
+              disabled={submitting || loadingQuote}
+              onClick={handleFinishOrder}
+              className="min-h-[46px] px-5 rounded-full bg-marina-600 hover:bg-marina-700 disabled:opacity-60 text-white text-sm font-semibold shadow-sm transition-colors cursor-pointer shrink-0"
+            >
+              {submitting ? "Enviando..." : "Finalizar Pedido"}
+            </button>
+          </div>
         </div>
       </main>
     </CheckoutContext.Provider>

@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
+import MobileCatalogControls from "@/components/MobileCatalogControls";
 import {
   queryCatalogProducts,
   parsePriceRange,
@@ -271,7 +272,7 @@ export default async function ProductsPage({ searchParams }: Props) {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8 overflow-x-clip">
       {/* Cabeçalho + Busca Direta */}
       <div className="border-b border-silk-200/80 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -320,30 +321,46 @@ export default async function ProductsPage({ searchParams }: Props) {
           )}
           <div className="relative flex-1 sm:w-72">
             <input
+              id="busca-catalogo"
               type="text"
               name="q"
               defaultValue={q}
               placeholder="Buscar no catálogo..."
               aria-label="Buscar produtos no catálogo"
-              className="w-full bg-white border border-silk-200 focus:border-marina-500 rounded-full py-2 pl-9 pr-4 text-xs text-onyx-900 placeholder-onyx-700/50 focus:outline-none focus:ring-2 focus:ring-marina-200"
+              className="w-full min-h-[44px] bg-white border border-silk-200 focus:border-marina-500 rounded-full py-2 pl-9 pr-4 text-sm md:text-xs text-onyx-900 placeholder-onyx-700/50 focus:outline-none focus:ring-2 focus:ring-marina-200"
             />
-            <Search className="w-3.5 h-3.5 text-onyx-700/50 absolute left-3.5 top-2.5 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-onyx-700/50 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
           <button
             type="submit"
-            className="bg-marina-600 hover:bg-marina-700 text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500"
+            className="min-h-[44px] bg-marina-600 hover:bg-marina-700 text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500"
           >
             Buscar
           </button>
         </form>
       </div>
 
+      {/* Barra sticky mobile: Filtrar (bottom sheet) + Ordenar (select nativo) */}
+      <MobileCatalogControls
+        basePath="/produtos"
+        currentQueryMap={currentQueryMap}
+        allCategories={allCategories}
+        allBrands={allBrands}
+        priceRanges={PRICE_RANGES}
+        sortOptions={SORT_OPTIONS}
+        selectedCategory={catSlug}
+        selectedBrand={brandSlug}
+        selectedPrice={priceKey}
+        selectedSort={sort}
+        hasActiveFilters={Boolean(hasActiveFilters)}
+      />
+
       {/* Layout Principal: Menu Lateral Esquerdo + Grid de Produtos */}
       <div className="flex flex-col lg:flex-row items-start gap-8">
         {/* Menu Lateral Esquerdo (Filtros Organizados para Visualizar Tudo) */}
         <aside className="w-full lg:w-64 xl:w-72 shrink-0">
-          {/* Mobile Accordion para Telas Menores */}
-          <div className="lg:hidden mb-4">
+          {/* Tablet Accordion (md..lg) */}
+          <div className="hidden md:block lg:hidden mb-4">
             <details className="bg-white rounded-2xl border border-silk-200/90 shadow-xs overflow-hidden group">
               <summary className="p-4 flex items-center justify-between cursor-pointer font-bold text-xs uppercase tracking-wider text-onyx-900 select-none">
                 <span className="flex items-center gap-2">
@@ -368,7 +385,7 @@ export default async function ProductsPage({ searchParams }: Props) {
         </aside>
 
         {/* Coluna da Direita: Chips Ativos + Grid de Produtos + Paginação */}
-        <main className="flex-1 w-full space-y-6">
+        <main className="flex-1 w-full min-w-0 space-y-6">
           {/* Chips de Filtros Ativos no Topo dos Produtos */}
           {hasActiveFilters && (
             <div className="bg-white p-3.5 rounded-xl border border-silk-200 flex flex-wrap items-center gap-2 text-xs">
@@ -455,7 +472,7 @@ export default async function ProductsPage({ searchParams }: Props) {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {filtered.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
@@ -465,7 +482,7 @@ export default async function ProductsPage({ searchParams }: Props) {
               {totalPages > 1 && (
                 <nav
                   aria-label="Paginação do catálogo"
-                  className="pt-8 border-t border-silk-200 flex items-center justify-center gap-2"
+                  className="pt-8 border-t border-silk-200 flex flex-wrap items-center justify-center gap-2"
                 >
                   {currentPage > 1 && (
                     <Link

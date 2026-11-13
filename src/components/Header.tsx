@@ -1,20 +1,68 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useCartState, useCartUI } from "@/context/CartContext";
 import Logo from "@/components/Logo";
-import { ShoppingBag, MessageCircle, Menu, X, ChevronRight, MapPin, Truck } from "lucide-react";
+import {
+  ShoppingBag,
+  MessageCircle,
+  Menu,
+  X,
+  ChevronRight,
+  ChevronDown,
+  Truck,
+  Search,
+  Instagram,
+  PackageSearch,
+  Sparkles,
+  Tag,
+} from "lucide-react";
 
 const CartDrawer = dynamic(() => import("./CartDrawer"), { ssr: false });
 
+const MOBILE_ANNOUNCEMENTS = [
+  "Frete grátis acima de R$ 199",
+  "Até 10x sem juros no cartão",
+  "5% OFF no pagamento via PIX",
+];
+
+const CATEGORY_LINKS = [
+  { label: "Tratamento & Máscaras", href: "/categoria/tratamento-mascaras" },
+  { label: "Cronograma Capilar", href: "/categoria/cronograma-capilar" },
+  { label: "Shampoos & Condicionadores", href: "/categoria/shampoos-condicionadores" },
+  { label: "Óleos & Séruns", href: "/categoria/oleos-seruns" },
+  { label: "Finalizadores & Protetor Térmico", href: "/categoria/finalizadores-protetor-termico" },
+  { label: "Perfumaria & Casa", href: "/categoria/perfumaria-casa" },
+  { label: "Kits Promocionais", href: "/categoria/kits-promocionais" },
+];
+
 export default function Header() {
+  const router = useRouter();
   const { totalItems } = useCartState();
   const { isCartOpen, openCart, badgePulseKey } = useCartUI();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasMountedDrawer, setHasMountedDrawer] = useState(false);
   const [badgePulsing, setBadgePulsing] = useState(false);
+
+  // Barra de avisos mobile rotativa
+  const [announcementIdx, setAnnouncementIdx] = useState(0);
+  const [announcementPaused, setAnnouncementPaused] = useState(false);
+
+  // Header hide-on-scroll-down / show-on-scroll-up apenas no mobile (< 768px)
+  const [hideOnScroll, setHideOnScroll] = useState(false);
+  const lastScrollY = useRef(0);
+
+  // Busca no drawer mobile
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Refs para acessibilidade do drawer mobile
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const drawerPanelRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     if (isCartOpen && !hasMountedDrawer) {
@@ -29,6 +77,87 @@ export default function Header() {
     return () => window.clearTimeout(t);
   }, [badgePulseKey]);
 
+  // Rotação automática da barra de avisos mobile (pausa com prefers-reduced-motion ou toque)
+  useEffect(() => {
+    if (announcementPaused) return;
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+
+    const timer = window.setInterval(() => {
+      setAnnouncementIdx((prev) => (prev + 1) % MOBILE_ANNOUNCEMENTS.length);
+    }, 3400);
+    return () => window.clearInterval(timer);
+  }, [announcementPaused]);
+
+  // Hide-on-scroll-down no mobile
+  useEffect(() => {
+    const onScroll = () => {
+      if (window.innerWidth >= 768) {
+        setHideOnScroll(false);
+        return;
+      }
+      const currentY = window.scrollY;
+      if (currentY <= 56) {
+        setHideOnScroll(false);
+      } else if (currentY > lastScrollY.current + 8 && currentY > 96) {
+        setHideOnScroll(true);
+      } else if (currentY < lastScrollY.current - 6) {
+        setHideOnScroll(false);
+      }
+      lastScrollY.current = currentY;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+    window.requestAnimationFrame(() => {
+      menuTriggerRef.current?.focus();
+    });
+  }, []);
+
+  // Trava scroll do body, fecha com Esc e prende foco no drawer mobile
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const panel = drawerPanelRef.current;
+    const focusableSelector =
+      'a[href], button:not([disabled]), input:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+    const focusables = panel ? Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector)) : [];
+    focusables[0]?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeMobileMenu();
+        return;
+      }
+      if (e.key === "Tab" && panel) {
+        const items = Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector));
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileMenuOpen, closeMobileMenu]);
+
   const prefetchCartDrawer = () => {
     void import("./CartDrawer");
   };
@@ -36,6 +165,13 @@ export default function Header() {
   const handleOpenCart = () => {
     setHasMountedDrawer(true);
     openCart();
+  };
+
+  const handleMobileSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    closeMobileMenu();
+    router.push(q ? `/produtos?q=${encodeURIComponent(q)}` : "/produtos");
   };
 
   const navLinks = [
@@ -49,10 +185,31 @@ export default function Header() {
     { label: "Amend", href: "/produtos?marca=amend" },
   ];
 
+  const brandLinks = navLinks.filter((l) => !l.isHighlight);
+
   return (
     <>
-      {/* Top Luxury Announcement Banner - Branco Gelo Refinado */}
-      <div className="bg-[#F8F9FA] text-onyx-900 border-b border-silk-200/90 py-2 sm:py-2.5 px-4 text-center transition-colors shadow-2xs">
+      {/* Barra de avisos MOBILE: 1 linha de 32px com rotação automática + pausa ao tocar */}
+      <div
+        className="md:hidden h-8 bg-[#FAF5FB] text-onyx-900 border-b border-silk-200 px-4 flex items-center justify-center"
+        onTouchStart={() => setAnnouncementPaused((p) => !p)}
+        onClick={() => setAnnouncementIdx((prev) => (prev + 1) % MOBILE_ANNOUNCEMENTS.length)}
+        role="region"
+        aria-label="Avisos promocionais"
+      >
+        <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-onyx-900 truncate">
+          <Truck className="w-3.5 h-3.5 text-marina-600 shrink-0" aria-hidden="true" />
+          <span
+            key={announcementIdx}
+            className="animate-fadeIn motion-reduce:animate-none [word-spacing:0.05em]"
+          >
+            {MOBILE_ANNOUNCEMENTS[announcementIdx]}
+          </span>
+        </div>
+      </div>
+
+      {/* Top Luxury Announcement Banner DESKTOP (inalterado em md+) */}
+      <div className="hidden md:block bg-[#F8F9FA] text-onyx-900 border-b border-silk-200/90 py-2 sm:py-2.5 px-4 text-center transition-colors shadow-2xs">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-xs sm:text-[12.5px] tracking-wide font-medium">
           <Truck className="w-3.5 h-3.5 text-[#7b2cbf] shrink-0" />
           <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1 text-center">
@@ -74,35 +231,50 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Main Header - Roxo #7b2cbf */}
-      <header className="sticky top-0 z-40 bg-[#7b2cbf] text-white border-b border-[#6a1fad] shadow-md transition-all duration-300">
+      {/* Main Header — Mobile: 56px branco com logo colorido (alto contraste); Desktop (md+): Roxo #7b2cbf intacto */}
+      <header
+        className={`sticky top-0 z-40 bg-white/95 backdrop-blur-md text-onyx-950 border-b border-silk-200 shadow-xs md:backdrop-blur-none md:bg-[#7b2cbf] md:text-white md:border-[#6a1fad] md:shadow-md transition-transform duration-300 motion-reduce:transition-none ${
+          hideOnScroll && !mobileMenuOpen ? "-translate-y-full md:translate-y-0" : "translate-y-0"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-24 sm:h-28 gap-4 sm:gap-6">
-            {/* Mobile Menu Toggle */}
+          <div className="grid grid-cols-[44px_1fr_auto] md:flex md:items-center md:justify-between h-14 md:h-28 gap-2 md:gap-6">
+            {/* Mobile Menu Toggle (44x44) */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-white hover:text-white/80 focus:outline-none focus:ring-2 focus:ring-white/40 rounded-lg transition-colors cursor-pointer"
-              aria-label="Menu"
+              ref={menuTriggerRef}
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="lg:hidden min-w-[44px] min-h-[44px] -ml-2 flex items-center justify-center text-onyx-900 md:text-white hover:bg-silk-100 md:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 md:focus-visible:ring-white/40 rounded-lg transition-colors cursor-pointer"
+              aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
               aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            {/* Brand Logo Integration - MÁXIMA PRESENÇA E DESTAQUE */}
+            {/* Brand Logo Integration — Mobile centralizado escuro sobre branco; Desktop grande branco sobre roxo */}
             <Link
               href="/"
-              className="inline-flex items-center group transition-transform duration-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded-lg py-1 shrink-0"
+              className="inline-flex items-center justify-self-center md:justify-self-start group transition-transform duration-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 md:focus-visible:ring-white/50 rounded-lg py-1 shrink-0"
               aria-label="Mariane Cosméticos - Página Inicial"
             >
-              {/* Mobile Viewport: Logo Nítido e Ampliado em Branco */}
-              <Logo variant="horizontal" size="sm" tone="light" className="sm:hidden" alt="Mariane Cosméticos" />
-              {/* Desktop Viewport: Logo Imponente e Destacado em Branco */}
-              <Logo variant="horizontal" size="lg" tone="light" className="hidden sm:inline-flex transform group-hover:scale-[1.03] transition-transform duration-200" alt="Mariane Cosméticos" />
+              <Logo
+                variant="horizontal"
+                size="sm"
+                tone="dark"
+                className="md:hidden !h-9 w-auto"
+                alt="Mariane Cosméticos"
+              />
+              <Logo
+                variant="horizontal"
+                size="lg"
+                tone="light"
+                className="hidden md:inline-flex transform group-hover:scale-[1.03] transition-transform duration-200"
+                alt="Mariane Cosméticos"
+              />
             </Link>
 
-            {/* Desktop Brand Credentials & Benefits (Texto Puro em Branco, Fonte Maior e Mais Grossa com Quebras de Linha) */}
+            {/* Desktop Brand Credentials & Benefits (inalterado) */}
             <div className="hidden md:flex items-center justify-center gap-6 lg:gap-8 xl:gap-12 text-white">
-              {/* Item 1: Revendedora Oficial Madressenza */}
               <div className="leading-tight text-center lg:text-left text-white" title="Revendedora Oficial Madressenza">
                 <span className="block font-extrabold text-sm sm:text-[15px] xl:text-base text-white tracking-tight">
                   Revendedora Oficial
@@ -113,7 +285,6 @@ export default function Header() {
                 <span className="sr-only">Revendedora Oficial Madressenza</span>
               </div>
 
-              {/* Item 2: Frete Grátis Acima de R$ 199 */}
               <div className="leading-tight text-center lg:text-left text-white">
                 <span className="block font-black text-sm sm:text-[15px] xl:text-base text-white tracking-tight">
                   Frete Grátis
@@ -123,7 +294,6 @@ export default function Header() {
                 </span>
               </div>
 
-              {/* Item 3: 5% OFF no PIX Ou até 10x sem juros */}
               <div className="leading-tight text-center lg:text-left text-white">
                 <span className="block font-black text-sm sm:text-[15px] xl:text-base text-white tracking-tight">
                   5% OFF no PIX
@@ -134,9 +304,18 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-3">
-              {/* WhatsApp direct customer support link */}
+            {/* Actions: Mobile [busca] [sacola]; Desktop [WhatsApp] [sacola] */}
+            <div className="flex items-center justify-end gap-1 md:gap-3">
+              {/* Mobile Busca Rápida (44x44) */}
+              <Link
+                href="/produtos#busca-catalogo"
+                aria-label="Buscar produtos"
+                className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-onyx-900 hover:bg-silk-100 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
+              >
+                <Search className="w-5 h-5" aria-hidden="true" />
+              </Link>
+
+              {/* WhatsApp direct customer support link (Desktop) */}
               <a
                 href="https://wa.me/5549991251617?text=Ol%C3%A1%2C%20Mariane%20Cosm%C3%A9ticos!%20Gostaria%20de%20atendimento%20personalizado."
                 target="_blank"
@@ -154,13 +333,13 @@ export default function Header() {
                 onClick={handleOpenCart}
                 onMouseEnter={prefetchCartDrawer}
                 onFocus={prefetchCartDrawer}
-                className="relative p-2.5 text-white hover:text-white/80 rounded-full hover:bg-white/10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/40 cursor-pointer"
+                className="relative min-w-[44px] min-h-[44px] -mr-1 md:mr-0 md:p-2.5 flex items-center justify-center text-onyx-900 md:text-white hover:bg-silk-100 md:hover:text-white/80 rounded-full md:hover:bg-white/10 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 md:focus-visible:ring-white/40 cursor-pointer"
                 aria-label="Abrir sacola de compras"
               >
-                <ShoppingBag className="w-6 h-6 text-white" />
+                <ShoppingBag className="w-6 h-6" aria-hidden="true" />
                 {totalItems > 0 && (
                   <span
-                    className={`absolute top-1 right-1 bg-white text-[#7b2cbf] text-[11px] font-bold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center border-2 border-[#7b2cbf] shadow-sm tabular-nums transition-transform duration-200 motion-reduce:transition-none ${
+                    className={`absolute top-1 right-1 bg-marina-600 text-white md:bg-white md:text-[#7b2cbf] text-[11px] font-bold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center border-2 border-white md:border-[#7b2cbf] shadow-sm tabular-nums transition-transform duration-200 motion-reduce:transition-none ${
                       badgePulsing ? "scale-125" : "scale-100"
                     }`}
                   >
@@ -196,86 +375,196 @@ export default function Header() {
             </ul>
           </div>
         </nav>
+      </header>
 
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-white/20 bg-[#6a1fad] p-4 space-y-4 shadow-xl animate-fadeIn text-white">
-            {/* Drawer Brand Lockup */}
-            <div className="flex items-center justify-between pb-3 border-b border-white/15">
-              <Logo variant="horizontal" size="sm" tone="light" alt="Mariane Cosméticos" />
-              <span className="text-[10px] text-white/80 font-medium italic">
-                Linda é a mulher que bem se quer
-              </span>
+      {/* Mobile Navigation Drawer (overlay separado, foco preso, sem logo duplicado) */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-50 lg:hidden flex"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu de navegação"
+        >
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-onyx-950/50 backdrop-blur-[2px]"
+            onClick={closeMobileMenu}
+            aria-hidden="true"
+          />
+
+          {/* Drawer Panel */}
+          <div
+            ref={drawerPanelRef}
+            onTouchStart={(e) => {
+              touchStartX.current = e.changedTouches[0]?.clientX ?? null;
+            }}
+            onTouchEnd={(e) => {
+              if (touchStartX.current === null) return;
+              const endX = e.changedTouches[0]?.clientX ?? touchStartX.current;
+              if (touchStartX.current - endX > 60) {
+                closeMobileMenu();
+              }
+              touchStartX.current = null;
+            }}
+            className="relative z-10 w-[86vw] max-w-sm h-full bg-white text-onyx-950 shadow-2xl flex flex-col overflow-hidden"
+          >
+            {/* Topo do Drawer: Título simples + botão X 44px sem moldura */}
+            <div className="flex items-center justify-between px-4 h-14 border-b border-silk-200 shrink-0">
+              <span className="font-serif text-lg font-medium text-onyx-950">Menu</span>
+              <button
+                type="button"
+                onClick={closeMobileMenu}
+                aria-label="Fechar menu"
+                className="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center text-onyx-700 hover:text-onyx-950 rounded-full hover:bg-silk-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
+              >
+                <X className="w-6 h-6" aria-hidden="true" />
+              </button>
             </div>
 
-            {/* Mobile Navigation Links */}
-            <ul className="space-y-1 text-sm font-medium">
-              {navLinks.map((link) => (
-                <li key={link.href}>
+            {/* Corpo rolável do drawer */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+              {/* Campo de busca no topo */}
+              <form onSubmit={handleMobileSearchSubmit} role="search" className="relative">
+                <label htmlFor="mobile-drawer-search" className="sr-only">
+                  Buscar cosméticos no catálogo
+                </label>
+                <Search
+                  className="w-4 h-4 text-onyx-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                  aria-hidden="true"
+                />
+                <input
+                  id="mobile-drawer-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar shampoo, máscara, perfume..."
+                  className="w-full min-h-[44px] pl-10 pr-4 rounded-xl bg-silk-50 border border-silk-200 text-sm text-onyx-950 placeholder:text-onyx-500 focus:outline-none focus:ring-2 focus:ring-marina-600 focus:bg-white"
+                />
+              </form>
+
+              {/* Links rápidos */}
+              <ul className="divide-y divide-silk-200/70 border border-silk-200 rounded-2xl overflow-hidden bg-white">
+                <li>
                   <Link
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-2.5 px-3 rounded-lg text-white hover:bg-white/10 border-b border-white/10 last:border-b-0 transition-colors"
+                    href="/produtos"
+                    onClick={closeMobileMenu}
+                    className="flex items-center justify-between min-h-[46px] px-4 text-sm font-semibold text-marina-700 hover:bg-marina-50 transition-colors"
                   >
-                    <span>{link.label}</span>
-                    <ChevronRight className="w-4 h-4 text-white/70" />
+                    <span className="inline-flex items-center gap-2.5">
+                      <Sparkles className="w-4 h-4" aria-hidden="true" />
+                      <span>Todos os produtos</span>
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-marina-600" aria-hidden="true" />
                   </Link>
                 </li>
-              ))}
-            </ul>
+                <li>
+                  <Link
+                    href="/produtos?ordem=promocoes"
+                    onClick={closeMobileMenu}
+                    className="flex items-center justify-between min-h-[46px] px-4 text-sm font-medium text-onyx-900 hover:bg-silk-50 transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-2.5">
+                      <Tag className="w-4 h-4 text-brand-accent" aria-hidden="true" />
+                      <span>Promoções</span>
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-onyx-500" aria-hidden="true" />
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/atendimento"
+                    onClick={closeMobileMenu}
+                    className="flex items-center justify-between min-h-[46px] px-4 text-sm font-medium text-onyx-900 hover:bg-silk-50 transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-2.5">
+                      <PackageSearch className="w-4 h-4 text-marina-600" aria-hidden="true" />
+                      <span>Rastrear pedido &amp; Atendimento</span>
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-onyx-500" aria-hidden="true" />
+                  </Link>
+                </li>
+              </ul>
 
-            {/* Mobile Brand Credentials & Benefits (Texto Puro em Branco, Fonte Maior e Mais Grossa com Quebras de Linha) */}
-            <div className="space-y-3.5 pt-3 border-t border-white/15 text-white">
-              <div className="leading-tight text-left">
-                <span className="block font-extrabold text-sm sm:text-base text-white">
-                  Revendedora Oficial
-                </span>
-                <span className="block font-black text-sm sm:text-base text-white">
-                  Madressenza
-                </span>
-                <span className="sr-only">Revendedora Oficial Madressenza</span>
-              </div>
+              {/* Acordeão: Categorias */}
+              <details className="group rounded-2xl border border-silk-200 bg-white overflow-hidden" open>
+                <summary className="flex items-center justify-between min-h-[48px] px-4 text-sm font-semibold text-onyx-950 cursor-pointer list-none select-none hover:bg-silk-50">
+                  <span>Categorias</span>
+                  <ChevronDown
+                    className="w-4 h-4 text-onyx-600 transition-transform duration-200 group-open:rotate-180"
+                    aria-hidden="true"
+                  />
+                </summary>
+                <ul className="border-t border-silk-100 divide-y divide-silk-100">
+                  {CATEGORY_LINKS.map((cat) => (
+                    <li key={cat.href}>
+                      <Link
+                        href={cat.href}
+                        onClick={closeMobileMenu}
+                        className="flex items-center justify-between min-h-[44px] px-4 text-sm text-onyx-800 hover:bg-marina-50 hover:text-marina-700 transition-colors"
+                      >
+                        <span>{cat.label}</span>
+                        <ChevronRight className="w-4 h-4 text-onyx-400" aria-hidden="true" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </details>
 
-              <div className="leading-tight text-left">
-                <span className="block font-black text-sm sm:text-base text-white">
-                  Frete Grátis
-                </span>
-                <span className="block font-bold text-xs sm:text-sm text-white">
-                  Acima de R$ 199
-                </span>
-              </div>
+              {/* Acordeão: Marcas */}
+              <details className="group rounded-2xl border border-silk-200 bg-white overflow-hidden">
+                <summary className="flex items-center justify-between min-h-[48px] px-4 text-sm font-semibold text-onyx-950 cursor-pointer list-none select-none hover:bg-silk-50">
+                  <span>Marcas Oficiais</span>
+                  <ChevronDown
+                    className="w-4 h-4 text-onyx-600 transition-transform duration-200 group-open:rotate-180"
+                    aria-hidden="true"
+                  />
+                </summary>
+                <ul className="border-t border-silk-100 divide-y divide-silk-100">
+                  {brandLinks.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        onClick={closeMobileMenu}
+                        className="flex items-center justify-between min-h-[44px] px-4 text-sm text-onyx-800 hover:bg-marina-50 hover:text-marina-700 transition-colors"
+                      >
+                        <span>{link.label}</span>
+                        <ChevronRight className="w-4 h-4 text-onyx-400" aria-hidden="true" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </details>
 
-              <div className="leading-tight text-left">
-                <span className="block font-black text-sm sm:text-base text-white">
-                  5% OFF no PIX
-                </span>
-                <span className="block font-bold text-xs sm:text-sm text-white">
-                  Ou até 10x sem juros
-                </span>
-              </div>
+              {/* Linha discreta única de credenciais */}
+              <p className="text-xs text-onyx-600 text-center pt-1">
+                Revendedora Oficial Madressenza &bull; Lages – SC
+              </p>
             </div>
 
-            {/* Mobile Customer Support Action */}
-            <div className="pt-2 border-t border-white/15">
+            {/* Rodapé do Menu: WhatsApp oficial + Instagram */}
+            <div className="p-4 border-t border-silk-200 bg-silk-50/70 pb-[max(1rem,env(safe-area-inset-bottom))] flex items-center gap-2.5 shrink-0">
               <a
                 href="https://wa.me/5549991251617?text=Ol%C3%A1%2C%20Mariane%20Cosm%C3%A9ticos!%20Gostaria%20de%20atendimento%20personalizado."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 bg-emerald-500/30 hover:bg-emerald-500/40 text-white border border-emerald-400/40 rounded-xl py-2.5 text-xs font-semibold transition-colors shadow-sm"
+                className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold shadow-sm transition-colors"
               >
-                <MessageCircle className="w-4 h-4 text-emerald-300" />
-                <span>Atendimento WhatsApp (49) 99125-1617</span>
+                <MessageCircle className="w-4 h-4 fill-white shrink-0" aria-hidden="true" />
+                <span>WhatsApp</span>
+              </a>
+              <a
+                href="https://www.instagram.com/mariane_cosmeticos_01/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram @mariane_cosmeticos_01"
+                className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-full bg-white border border-silk-200 text-onyx-900 hover:border-marina-300 hover:text-marina-700 transition-colors"
+              >
+                <Instagram className="w-5 h-5" aria-hidden="true" />
               </a>
             </div>
-
-            {/* Location & Slogan Tag */}
-            <div className="text-center pt-1 text-[11px] text-white/70 flex items-center justify-center gap-1">
-              <MapPin className="w-3 h-3 text-white/80" />
-              <span>Rua Blumenau, Nº 623, Lages - SC</span>
-            </div>
           </div>
-        )}
-      </header>
+        </div>
+      )}
 
       {/* Cart Drawer (carregado sob demanda no primeiro clique) */}
       {hasMountedDrawer && <CartDrawer />}

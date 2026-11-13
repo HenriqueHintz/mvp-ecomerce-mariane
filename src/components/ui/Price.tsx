@@ -40,7 +40,7 @@ export function Price({
       ? "text-2xl sm:text-3xl font-bold text-onyx-950 tabular-nums tracking-tight"
       : size === "sm"
       ? "text-lg font-bold text-onyx-950 tabular-nums tracking-tight"
-      : "text-xl sm:text-[1.3125rem] font-bold text-onyx-950 tabular-nums tracking-tight";
+      : "text-lg sm:text-[1.3125rem] font-bold text-onyx-950 tabular-nums tracking-tight";
 
   return (
     <div className={`font-sans tabular-nums space-y-1 ${className}`.trim()}>

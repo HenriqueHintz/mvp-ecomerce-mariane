@@ -142,23 +142,26 @@ function MobileRail() {
       <ul
         ref={railRef}
         onScroll={onScroll}
-        className="bs-rail -mx-5 flex snap-x snap-mandatory scroll-pl-5 gap-3 overflow-x-auto px-5 pb-4"
+        className="bs-rail -mx-4 sm:-mx-8 lg:mx-0 flex snap-x snap-mandatory scroll-pl-4 sm:scroll-pl-8 gap-2.5 md:gap-3 overflow-x-auto px-4 sm:px-8 pb-3"
         aria-label="Marcas, deslize para ver mais"
       >
         {ALL_SHOWCASE_BRANDS.map((b, i) => {
           const isFeatured = b.slug === "madressenza";
           return (
-            <li key={b.slug} className="w-[82%] max-w-[330px] shrink-0 snap-start">
+            <li
+              key={b.slug}
+              className="w-[39%] min-w-[138px] max-w-[164px] md:w-[44%] md:min-w-0 md:max-w-[330px] shrink-0 snap-start"
+            >
               <Link
                 href={b.href}
                 aria-label={`Ver produtos ${b.name}`}
-                className="relative isolate block aspect-[4/5] overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marina-700"
+                className="relative isolate flex items-center justify-center h-[116px] md:block md:h-auto md:aspect-[4/5] rounded-2xl md:rounded-none overflow-hidden border border-silk-200/80 md:border-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marina-700"
               >
                 <Image
                   src={b.scene}
                   alt=""
                   fill
-                  sizes="82vw"
+                  sizes="(max-width: 767px) 40vw, 82vw"
                   priority={i === 0}
                   className="object-cover"
                 />
@@ -168,19 +171,21 @@ function MobileRail() {
                   style={{
                     background:
                       b.tone === "escuro"
-                        ? "linear-gradient(to bottom, rgba(10,4,12,.58) 0%, rgba(10,4,12,.18) 44%, transparent 62%)"
-                        : "linear-gradient(to bottom, rgba(250,247,251,.72) 0%, rgba(250,247,251,.22) 44%, transparent 62%)",
+                        ? "linear-gradient(to bottom, rgba(10,4,12,.58) 0%, rgba(10,4,12,.34) 100%)"
+                        : "linear-gradient(to bottom, rgba(250,247,251,.78) 0%, rgba(250,247,251,.48) 100%)",
                   }}
                 />
                 <span
                   className={
                     isFeatured
-                      ? "absolute left-[7%] top-[10%] flex w-[56%] flex-col items-start gap-3"
-                      : "absolute inset-x-5 top-[10%] flex flex-col items-center gap-3"
+                      ? "relative z-10 flex items-center justify-center px-3 md:absolute md:left-[7%] md:top-[10%] md:w-[56%] md:flex-col md:items-start md:gap-3"
+                      : "relative z-10 flex items-center justify-center px-3 md:absolute md:inset-x-5 md:top-[10%] md:flex-col md:items-center md:gap-3"
                   }
                 >
-                  <Logo brand={b} scale={isFeatured ? 0.72 : 0.88} color={heroLogoColor(b.tone)} />
-                  <Cta tone={b.tone} />
+                  <Logo brand={b} scale={isFeatured ? 0.56 : 0.62} color={heroLogoColor(b.tone)} />
+                  <span className="hidden md:inline-flex">
+                    <Cta tone={b.tone} />
+                  </span>
                 </span>
               </Link>
             </li>
@@ -225,12 +230,12 @@ export default function BrandShowcase() {
     <section
       ref={ref}
       aria-labelledby="marcas-titulo"
-      className="brand-showcase bg-luxury-offwhite py-16 sm:py-20 lg:py-24"
+      className="brand-showcase bg-luxury-offwhite py-10 sm:py-20 lg:py-24"
     >
-      <div className="mx-auto w-full max-w-[1280px] px-5 sm:px-8">
+      <div className="mx-auto w-full max-w-[1280px] px-4 sm:px-8">
         <h2
           id="marcas-titulo"
-          className="bs-reveal mb-10 max-w-2xl font-serif text-3xl leading-tight text-onyx-950 sm:text-4xl lg:mb-14"
+          className="bs-reveal mb-5 sm:mb-10 max-w-2xl font-serif text-2xl font-normal leading-snug text-onyx-950 sm:text-4xl lg:mb-14"
           style={{ ["--i" as string]: 0 }}
         >
           Marcas Profissionais &amp; Alta Perfumaria

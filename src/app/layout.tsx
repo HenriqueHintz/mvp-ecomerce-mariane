@@ -6,6 +6,7 @@ import "../../public/fx/sites-incriveis.css";
 import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -112,6 +113,7 @@ export default function RootLayout({
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
+          <MobileBottomNav />
         </CartProvider>
         <Script src="/fx/sites-incriveis.js" strategy="afterInteractive" />
       </body>

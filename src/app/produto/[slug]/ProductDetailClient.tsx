@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useCartActions } from "@/context/CartContext";
 import { Product } from "@/db/schema";
+import { formatBRL } from "@/lib/pricing";
 import {
   ShoppingBag,
   MessageCircle,
@@ -80,9 +81,45 @@ export default function ProductDetailClient({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-      {/* Galeria de Fotos com Fallback */}
-      <div className="lg:col-span-6 space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pb-24 lg:pb-0">
+      {/* Galeria Mobile com Swipe */}
+      <div className="md:hidden -mx-4 px-4">
+        <div className="flex snap-x snap-mandatory overflow-x-auto gap-3 pb-2">
+          {imageUrls.map((url, idx) => (
+            <div
+              key={idx}
+              className="relative w-[88vw] max-w-[380px] aspect-square shrink-0 snap-center rounded-2xl overflow-hidden bg-silk-100 border border-silk-200 shadow-sm"
+            >
+              {!thumbErrors[idx] && url ? (
+                <Image
+                  src={url}
+                  alt={`${product.name} - Foto ${idx + 1}`}
+                  fill
+                  priority={idx === 0}
+                  onError={() => setThumbErrors((prev) => ({ ...prev, [idx]: true }))}
+                  className="object-cover"
+                  sizes="90vw"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-marina-50 to-silk-100 text-marina-700">
+                  <Sparkles className="w-10 h-10 text-marina-500 mb-2" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-marina-600">
+                    {brandName}
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {imageUrls.length > 1 && (
+          <p className="text-xs text-onyx-600 text-center mt-1">
+            Deslize para ver mais fotos ({imageUrls.length})
+          </p>
+        )}
+      </div>
+
+      {/* Galeria de Fotos Desktop/Tablet com Fallback */}
+      <div className="hidden md:block lg:col-span-6 space-y-4">
         <div className="relative aspect-square rounded-3xl overflow-hidden bg-silk-100 border border-silk-200 shadow-lg">
           {!mainImgError && selectedImage ? (
             <Image
@@ -167,24 +204,24 @@ export default function ProductDetailClient({
         </div>
 
         {/* Bloco de Preço Real */}
-        <div className="p-5 rounded-2xl bg-silk-100 border border-silk-200 space-y-2">
+        <div className="p-4 sm:p-5 rounded-2xl bg-silk-100 border border-silk-200 space-y-2">
           <div className="flex items-baseline gap-3">
             {hasRealPromo && (
-              <span className="text-sm text-onyx-700/50 line-through">
-                R$ {product.price.toFixed(2)}
+              <span className="text-sm text-onyx-700/60 line-through tabular-nums">
+                {formatBRL(product.price)}
               </span>
             )}
-            <span className="text-3xl font-bold text-onyx-900">
-              R$ {currentPrice.toFixed(2)}
+            <span className="text-2xl sm:text-3xl font-bold text-onyx-900 tabular-nums">
+              {formatBRL(currentPrice)}
             </span>
           </div>
 
-          <p className="text-sm text-emerald-dark font-semibold">
-            R$ {pixPrice} à vista no PIX com 5% de desconto
+          <p className="text-sm text-emerald-dark font-semibold tabular-nums">
+            {formatBRL(Number(pixPrice))} à vista no PIX com 5% de desconto
           </p>
 
-          <p className="text-xs text-onyx-700">
-            ou em até {installments}x de R$ {instVal.toFixed(2)} sem juros no
+          <p className="text-xs text-onyx-700 tabular-nums">
+            ou em até {installments}x de {formatBRL(instVal)} sem juros no
             cartão
           </p>
         </div>
@@ -322,6 +359,39 @@ export default function ProductDetailClient({
               </p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Barra Fixa Inferior no Mobile: Preço + Adicionar à sacola */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-silk-200 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(26,9,24,0.08)]">
+        <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <span className="block text-xs text-emerald-800 font-semibold tabular-nums">
+              {formatBRL(Number(pixPrice))} no PIX
+            </span>
+            <span className="block text-lg font-bold text-onyx-950 tabular-nums leading-tight">
+              {formatBRL(currentPrice * quantity)}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className={`min-h-[46px] px-5 rounded-full text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer shrink-0 ${
+              added ? "bg-emerald-700 text-white" : "bg-marina-600 hover:bg-marina-700 text-white"
+            }`}
+          >
+            {added ? (
+              <>
+                <Check className="w-4 h-4" />
+                <span>Adicionado ✓</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag className="w-4 h-4" />
+                <span>Adicionar à sacola</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

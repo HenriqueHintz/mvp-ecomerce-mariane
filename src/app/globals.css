@@ -26,16 +26,30 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 96px;
   color-scheme: light;
+}
+
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 170px;
+  }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-jakarta), 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  font-kerning: normal;
+  word-spacing: 0.04em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+/* Compensa o encolhimento visual de espaços na Plus Jakarta Sans com letter-spacing */
+[class*="tracking-"] {
+  word-spacing: 0.07em;
 }
 
 /* Mariane Violet Selection Highlight */

@@ -161,8 +161,8 @@ export default function CartPage() {
         </aside>
       </div>
 
-      {/* Barra fixa inferior no Mobile (total + botão Finalizar compra) */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-silk-200 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(26,9,24,0.08)]">
+      {/* Barra fixa inferior no Mobile (acima da MobileBottomNav em <768px) */}
+      <div className="lg:hidden fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] md:bottom-0 inset-x-0 z-20 bg-white/95 backdrop-blur-md border-t border-silk-200 px-4 py-3 md:pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(26,9,24,0.08)]">
         <div className="max-w-lg mx-auto flex items-center justify-between gap-4">
           <div>
             <span className="block text-xs text-onyx-700 font-medium">

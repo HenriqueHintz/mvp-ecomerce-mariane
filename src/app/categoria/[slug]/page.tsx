@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { db, categories } from "@/db";
 import { eq } from "drizzle-orm";
 import ProductCard from "@/components/ProductCard";
+import MobileCatalogControls from "@/components/MobileCatalogControls";
 import {
   queryCatalogProducts,
   parsePriceRange,
@@ -206,12 +207,13 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         </div>
 
         {/* Navegação Rápida entre Categorias */}
-        <div className="flex flex-wrap gap-2 text-xs">
+        {/* Navegação rápida entre categorias (scroll horizontal no mobile) */}
+        <div className="flex md:flex-wrap gap-2 text-xs overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0">
           {allCategories.map((c) => (
             <Link
               key={c.slug}
               href={`/categoria/${c.slug}`}
-              className={`px-3.5 py-1.5 rounded-full border transition-all ${
+              className={`shrink-0 min-h-[38px] inline-flex items-center px-3.5 py-1.5 rounded-full border transition-all ${
                 c.slug === slug
                   ? "bg-marina-600 text-white border-marina-600 font-semibold"
                   : "bg-white text-onyx-800 border-silk-200 hover:border-marina-300"
@@ -222,8 +224,21 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           ))}
         </div>
 
-        {/* Filtros de Marca, Faixa de Preço e Ordenação */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-silk-200 shadow-sm space-y-4">
+        {/* Mobile Sticky Filtrar + Ordenar */}
+        <MobileCatalogControls
+          basePath={basePath}
+          currentQueryMap={currentQueryMap}
+          allBrands={allBrands}
+          priceRanges={PRICE_RANGES}
+          sortOptions={SORT_OPTIONS}
+          selectedBrand={brandSlug}
+          selectedPrice={priceKey}
+          selectedSort={sort}
+          hasActiveFilters={Boolean(hasActiveFilters)}
+        />
+
+        {/* Filtros de Marca, Faixa de Preço e Ordenação (Desktop/Tablet) */}
+        <div className="hidden md:block bg-white p-4 sm:p-5 rounded-2xl border border-silk-200 shadow-sm space-y-4">
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
             <span className="text-[11px] font-bold uppercase tracking-wider text-onyx-700 mr-1">
               Marca:
@@ -387,7 +402,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {categoryProducts.map((p) => (
               <ProductCard key={p.id} {...p} />
             ))}
@@ -396,7 +411,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           {totalPages > 1 && (
             <nav
               aria-label="Paginação da categoria"
-              className="pt-8 border-t border-silk-200 flex items-center justify-center gap-2"
+              className="pt-8 border-t border-silk-200 flex flex-wrap items-center justify-center gap-2"
             >
               {currentPage > 1 && (
                 <Link

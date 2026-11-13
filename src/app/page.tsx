@@ -112,8 +112,8 @@ export default async function HomePage() {
       {/* 3. Sobre a Loja Física & Localização em Lages – SC */}
       <StoreMapSection />
 
-      {/* 4. Chamada Final */}
-      <section className="pt-2 pb-10 sm:pt-4 sm:pb-12 lg:pb-14">
+      {/* 4. Chamada Final (apenas desktop — no mobile é redundante com a nav inferior + WhatsApp) */}
+      <section className="hidden md:block pt-2 pb-10 sm:pt-4 sm:pb-12 lg:pb-14">
         <Container>
           <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-marina-200/80 py-10 px-6 sm:py-12 sm:px-10 text-center shadow-luxury-card">
             <h2 className="font-serif text-2xl sm:text-4xl font-bold text-onyx-950 max-w-md mx-auto leading-tight tracking-tight [word-spacing:0.04em]">
