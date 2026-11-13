@@ -18,6 +18,7 @@ export default function MobileFloatingActions() {
   const [scrollingDown, setScrollingDown] = useState(false);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [stickyOffset, setStickyOffset] = useState(0);
+  const [hideWhatsApp, setHideWhatsApp] = useState(false);
 
   const lastScrollY = useRef(0);
   const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -81,6 +82,35 @@ export default function MobileFloatingActions() {
     };
   }, [pathname]);
 
+  // Esconde o flutuante do WhatsApp quando um card de WhatsApp já está visível na tela
+  useEffect(() => {
+    const targets = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-whatsapp-card="true"]')
+    );
+    if (targets.length === 0 || typeof IntersectionObserver === "undefined") {
+      setHideWhatsApp(false);
+      return;
+    }
+
+    const visibleSet = new Set<Element>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            visibleSet.add(entry.target);
+          } else {
+            visibleSet.delete(entry.target);
+          }
+        }
+        setHideWhatsApp(visibleSet.size > 0);
+      },
+      { threshold: 0.15 }
+    );
+
+    targets.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [pathname]);
+
   const hidden = !pastHero || isCartOpen || overlayOpen;
 
   return (
@@ -117,17 +147,19 @@ export default function MobileFloatingActions() {
         )}
       </button>
 
-      {/* Botão flutuante do WhatsApp (52px) */}
-      <a
-        href={WHATSAPP_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        tabIndex={hidden ? -1 : 0}
-        aria-label="Falar no WhatsApp (49) 99125-1617"
-        className="w-[52px] h-[52px] rounded-full bg-emerald-whatsapp hover:bg-emerald-dark text-onyx-950 hover:text-white shadow-[0_8px_24px_rgba(18,140,126,0.28)] flex items-center justify-center transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
-      >
-        <MessageCircle className="w-6 h-6" aria-hidden="true" />
-      </a>
+      {/* Botão flutuante do WhatsApp (52px) — oculto quando um card de WhatsApp está visível */}
+      {!hideWhatsApp && (
+        <a
+          href={WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          tabIndex={hidden ? -1 : 0}
+          aria-label="Falar no WhatsApp (49) 99125-1617"
+          className="w-[52px] h-[52px] rounded-full bg-emerald-whatsapp hover:bg-emerald-dark text-onyx-950 hover:text-white shadow-[0_8px_24px_rgba(18,140,126,0.28)] flex items-center justify-center transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
+        >
+          <MessageCircle className="w-6 h-6" aria-hidden="true" />
+        </a>
+      )}
     </div>
   );
 }
