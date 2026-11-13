@@ -282,25 +282,25 @@ export default function ProductDetailClient({
             <button
               type="button"
               onClick={handleAddToCart}
-              className="w-full bg-onyx-900 hover:bg-marina-600 text-silk-50 hover:text-white py-4 px-6 rounded-2xl text-xs font-semibold tracking-wider uppercase transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500"
+              className="w-full min-h-[44px] h-11 bg-onyx-950 hover:bg-marina-700 text-silk-50 hover:text-white px-5 rounded-xl text-[15px] font-semibold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               {added ? (
-                <Check className="w-4 h-4 text-emerald-whatsapp" />
+                <Check className="w-4 h-4 text-emerald-400" />
               ) : (
                 <ShoppingBag className="w-4 h-4" />
               )}
               <span>
-                {added ? "Adicionado ao Carrinho!" : "Adicionar ao Carrinho"}
+                {added ? "Adicionado à sacola ✓" : "Adicionar à sacola"}
               </span>
             </button>
 
             <button
               type="button"
               onClick={handleWhatsApp}
-              className="w-full bg-emerald-whatsapp hover:bg-emerald-dark text-white py-4 px-6 rounded-2xl text-xs font-semibold tracking-wider uppercase transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-whatsapp"
+              className="w-full min-h-[44px] h-11 bg-emerald-50 hover:bg-emerald-100 text-emerald-whatsapp border border-emerald-whatsapp/60 hover:border-emerald-whatsapp px-5 rounded-xl text-[15px] font-semibold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 active:scale-[0.98]"
             >
-              <MessageCircle className="w-4 h-4 fill-white" />
-              <span>Comprar pelo WhatsApp</span>
+              <MessageCircle className="w-4 h-4" />
+              <span>Pedir pelo WhatsApp</span>
             </button>
           </div>
         </div>

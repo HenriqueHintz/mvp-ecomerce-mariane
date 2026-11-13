@@ -483,7 +483,7 @@ describe("Tier 1 - Feature Coverage", () => {
         const buttonCode = fs.readFileSync(path.join(uiDir, "Button.tsx"), "utf-8");
         expect(buttonCode).toContain("focus-visible:ring-2", "Button must define focus-visible state");
         expect(buttonCode).toContain("disabled:opacity-50", "Button must define disabled state");
-        expect(buttonCode).toContain("hover:bg-marina-600", "Button must define hover state");
+        expect(buttonCode).toContain("hover:bg-marina-700", "Button must define hover state");
       },
       { tier: 1, milestone: "M1", authoritativeSource: "docs/DESIGN.md §7.1" }
     );

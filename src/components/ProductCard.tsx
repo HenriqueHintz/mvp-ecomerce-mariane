@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCartActions } from "@/context/CartContext";
-import { Price } from "@/components/ui";
+import { Button, Price } from "@/components/ui";
 import { Check, Eye, ShoppingBag } from "lucide-react";
 
 export interface ProductCardProps {
@@ -142,13 +142,13 @@ export default function ProductCard({
             installmentValue={instVal}
           />
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={handleAddToCart}
-            className={`w-full min-h-[44px] py-2.5 px-4 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 active:scale-[0.98] ${
-              added
-                ? "bg-emerald-700 text-white"
-                : "bg-onyx-950 hover:bg-marina-700 text-white"
+            className={`self-start min-w-[164px] whitespace-nowrap ${
+              added ? "!bg-emerald-700 !text-white" : ""
             }`}
             aria-label={
               added ? `${name} adicionado à sacola` : `Adicionar ${name} à sacola`
@@ -156,16 +156,16 @@ export default function ProductCard({
           >
             {added ? (
               <>
-                <Check className="w-4 h-4 shrink-0" />
+                <Check className="w-4 h-4 shrink-0" aria-hidden="true" />
                 <span>Adicionado ✓</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="w-4 h-4 shrink-0" />
+                <ShoppingBag className="w-4 h-4 shrink-0" aria-hidden="true" />
                 <span>Adicionar</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </article>

@@ -243,7 +243,7 @@ export default function CartDrawer() {
 
           {/* Rodapé fixo com Safe-Area */}
           {items.length > 0 && (
-            <footer className="px-5 sm:px-6 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-silk-200 bg-silk-50/70 shrink-0">
+            <footer className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-silk-200 bg-silk-50/70 shrink-0">
               <CartSummary
                 subtotalCents={subtotalCents}
                 pixTotalCents={pixTotalCents}

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { ArrowRight, RotateCcw, Trash2, X } from "lucide-react";
 import {
   useCartActions,
@@ -13,6 +12,7 @@ import FreeShippingBar from "@/components/cart/FreeShippingBar";
 import CartLineItem from "@/components/cart/CartLineItem";
 import CartSummary from "@/components/cart/CartSummary";
 import CartEmptyState from "@/components/cart/CartEmptyState";
+import { Button } from "@/components/ui";
 
 export default function CartPage() {
   const {
@@ -145,7 +145,7 @@ export default function CartPage() {
         </div>
 
         <aside className="lg:col-span-4 lg:sticky lg:top-32">
-          <div className="bg-white p-5 sm:p-6 rounded-3xl border border-silk-200 shadow-luxury-card space-y-5">
+          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-silk-200 shadow-luxury-card space-y-4">
             <h2 className="font-serif text-xl sm:text-2xl font-bold text-onyx-950 border-b border-silk-100 pb-3">
               Resumo do Pedido
             </h2>
@@ -176,13 +176,15 @@ export default function CartPage() {
             </span>
           </div>
 
-          <Link
+          <Button
             href="/checkout"
-            className="flex-1 max-w-[220px] min-h-[44px] bg-marina-600 hover:bg-marina-700 text-white font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors shadow-marina-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
+            variant="primary"
+            size="md"
+            className="shrink-0 whitespace-nowrap"
           >
             <span>Finalizar compra</span>
             <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
-          </Link>
+          </Button>
         </div>
       </div>
     </div>
