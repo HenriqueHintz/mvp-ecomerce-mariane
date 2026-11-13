@@ -238,7 +238,7 @@ export default function Header() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-[44px_1fr_auto] md:flex md:items-center md:justify-between h-14 md:h-28 gap-2 md:gap-6">
+          <div className="grid grid-cols-[44px_1fr_auto] md:flex md:items-center md:justify-between h-14 md:h-28 gap-2 md:gap-3 lg:gap-6">
             {/* Mobile Menu Toggle (44x44) */}
             <button
               ref={menuTriggerRef}
@@ -274,7 +274,7 @@ export default function Header() {
             </Link>
 
             {/* Desktop Brand Credentials & Benefits (inalterado) */}
-            <div className="hidden md:flex items-center justify-center gap-6 lg:gap-8 xl:gap-12 text-white">
+            <div className="hidden md:flex items-center justify-center gap-3 lg:gap-8 xl:gap-12 text-white">
               <div className="leading-tight text-center lg:text-left text-white" title="Revendedora Oficial Madressenza">
                 <span className="block font-extrabold text-sm sm:text-[15px] xl:text-base text-white tracking-tight">
                   Revendedora Oficial

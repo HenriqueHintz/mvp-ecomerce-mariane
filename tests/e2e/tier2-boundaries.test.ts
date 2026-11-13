@@ -153,13 +153,13 @@ describe("Tier 2 - Boundary & Corner Cases", () => {
     );
 
     test(
-      "2.2.3 Tablet viewport (768px): Product vitrines adapt to 3-column tablet grid and 2-column mobile grid",
+      "2.2.3 Tablet viewport (768px): Product vitrines adapt to 3-column tablet grid and mobile scroll-snap",
       () => {
         const showcasePath = path.join(ROOT_DIR, "src", "components", "ProductShowcase.tsx");
         const showcaseCode = fs.readFileSync(showcasePath, "utf-8");
 
         expect(showcaseCode).toContain("md:grid-cols-3", "Product grid must adapt to 3 columns on tablet screens");
-        expect(showcaseCode).toContain("grid-cols-2", "Mobile vitrine must provide compact 2-column grid");
+        expect(showcaseCode).toContain("snap-x snap-mandatory", "Mobile vitrine must provide horizontal scroll-snap carousel");
       },
       { tier: 2, milestone: "M3", authoritativeSource: "ORIGINAL_REQUEST.md Acceptance Criteria §UI" }
     );

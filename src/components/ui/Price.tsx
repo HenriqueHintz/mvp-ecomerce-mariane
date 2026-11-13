@@ -44,13 +44,15 @@ export function Price({
 
   return (
     <div className={`font-sans tabular-nums space-y-1 ${className}`.trim()}>
-      {/* Nível 1: Preço riscado + Preço final em destaque */}
-      <div className="flex items-baseline gap-2 flex-wrap">
+      {/* Nível 1: Preço riscado (altura reservada para alinhar cards) + Preço final em destaque */}
+      <div className="min-h-[1.125rem] flex items-center">
         {hasRealPromo && (
-          <span className="text-xs text-onyx-500 line-through font-normal">
+          <span className="text-xs text-onyx-600 line-through font-normal">
             {formatBRL(price)}
           </span>
         )}
+      </div>
+      <div>
         <span className={mainPriceClass}>{formatBRL(currentPrice)}</span>
       </div>
 

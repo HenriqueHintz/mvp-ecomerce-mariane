@@ -98,7 +98,7 @@ export default function ProductCard({
         href={`/produto/${slug}`}
         title={name}
         aria-label={name}
-        className="block relative aspect-[4/5] bg-silk-50 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-marina-600"
+        className="block relative aspect-[4/5] bg-white overflow-hidden border-b border-silk-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-marina-600"
       >
         {!imgError && imageUrl ? (
           <Image
@@ -106,8 +106,8 @@ export default function ProductCard({
             alt={name}
             fill
             onError={() => setImgError(true)}
-            className="object-contain p-2 md:p-4 group-hover:scale-[1.03] transition-transform duration-500 ease-out motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-            sizes="(max-width: 767px) 46vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-contain p-3 sm:p-4 mix-blend-multiply group-hover:scale-[1.03] transition-transform duration-500 ease-out motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            sizes="(max-width: 767px) 78vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-marina-50 to-silk-100 text-marina-700">
@@ -122,7 +122,7 @@ export default function ProductCard({
         )}
 
         {hasRealPromo && (
-          <span className="absolute top-3 left-3 bg-marina-700 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+          <span className="absolute top-3 left-3 bg-marina-800 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
             -{discountPercent}%
           </span>
         )}
@@ -137,14 +137,14 @@ export default function ProductCard({
       </Link>
 
       {/* Corpo do card */}
-      <div className="p-3 sm:p-5 flex-1 flex flex-col justify-between gap-2.5 sm:gap-3.5">
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between gap-3 sm:gap-3.5">
         <div>
-          <div className="flex items-center justify-between gap-2 mb-1 sm:mb-1.5 flex-wrap">
+          <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
             <span className="text-xs font-semibold text-marina-700 truncate">
               {brandName || "Mariane Cosméticos"}
             </span>
             {isBestSeller === 1 && (
-              <span className="hidden md:inline-block text-xs font-medium px-2.5 py-0.5 rounded-full bg-silk-100 text-onyx-800 shrink-0">
+              <span className="inline-block text-xs font-medium px-2.5 py-0.5 rounded-full bg-silk-100 text-onyx-800 shrink-0">
                 Destaque
               </span>
             )}
@@ -156,14 +156,14 @@ export default function ProductCard({
             aria-label={name}
             className="block group-hover:text-marina-700 transition-colors focus-visible:outline-none focus-visible:underline"
           >
-            <h3 className="font-sans text-[14px] sm:text-[15px] font-medium text-onyx-900 line-clamp-2 md:line-clamp-3 leading-snug min-h-[2.45rem] md:min-h-[3.85rem]">
+            <h3 className="font-sans text-sm sm:text-[15px] font-medium text-onyx-900 line-clamp-3 leading-snug min-h-[3.75rem]">
               {name}
             </h3>
           </Link>
         </div>
 
         {/* Preço + Ações */}
-        <div className="pt-2.5 sm:pt-3 border-t border-silk-200/80 flex flex-col gap-2.5 sm:gap-3">
+        <div className="pt-3 border-t border-silk-200/80 flex flex-col gap-3">
           <Price
             price={price}
             promoPrice={hasRealPromo ? promoPrice : null}
@@ -175,7 +175,7 @@ export default function ProductCard({
             <button
               type="button"
               onClick={handleAddToCart}
-              className={`w-full min-h-[44px] py-2 px-3 sm:py-2.5 sm:px-4 rounded-full text-xs sm:text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 active:scale-[0.98] ${
+              className={`w-full min-h-[44px] py-2.5 px-4 rounded-full text-[13px] font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 active:scale-[0.98] ${
                 added
                   ? "bg-emerald-700 text-white"
                   : "bg-onyx-950 hover:bg-marina-700 text-white"
@@ -200,7 +200,7 @@ export default function ProductCard({
             <button
               type="button"
               onClick={handleWhatsAppSingle}
-              className="hidden md:flex w-full min-h-[44px] py-2 px-3 rounded-full text-xs sm:text-[13px] font-medium bg-emerald-50 hover:bg-emerald-100 active:scale-[0.98] text-emerald-800 border border-emerald-700/25 items-center justify-center gap-2 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
+              className="flex w-full min-h-[44px] py-2 px-3 rounded-full text-xs sm:text-[13px] font-medium bg-emerald-50 hover:bg-emerald-100 active:scale-[0.98] text-emerald-800 border border-emerald-700/25 items-center justify-center gap-2 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
               aria-label={`Pedir ${name} pelo WhatsApp`}
             >
               <MessageCircle className="w-4 h-4 shrink-0" />

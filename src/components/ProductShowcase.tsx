@@ -257,16 +257,57 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
           role="tabpanel"
           aria-labelledby={`vitrine-tab-${activeTab}`}
         >
-          {/* Mobile: Grade compacta de 2 colunas para escaneabilidade e comparação */}
+          {/* Mobile: Carrossel horizontal com scroll-snap (~78% do card visível, mostrando o próximo) */}
           <div className="md:hidden">
-            <div className="grid grid-cols-2 gap-3">
-              {filteredProducts.slice(0, 6).map((product) => (
-                <ProductCard key={product.id} {...product} />
+            <div
+              ref={railRef}
+              onScroll={handleMobileScroll}
+              role="region"
+              aria-roledescription="carousel"
+              aria-label="Produtos em destaque"
+              className="bs-rail -mx-4 px-4 flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-pl-4 pb-2"
+            >
+              {filteredProducts.map((product, idx) => (
+                <div
+                  key={product.id}
+                  className="w-[78%] shrink-0 snap-start vitrine-item"
+                  style={{ ["--vi" as string]: Math.min(idx, 5) }}
+                >
+                  <ProductCard {...product} />
+                </div>
               ))}
             </div>
 
+            {/* Indicadores de posição do carrossel mobile */}
+            {filteredProducts.length > 1 && (
+              <div
+                className="mt-3 flex items-center justify-center gap-1"
+                aria-label="Indicadores de posição da vitrine"
+              >
+                {filteredProducts.map((product, idx) => {
+                  const active = idx === mobileIndex;
+                  return (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => scrollToMobileIndex(idx)}
+                      aria-label={`Ir para produto ${idx + 1} de ${filteredProducts.length}`}
+                      aria-current={active ? "true" : undefined}
+                      className="min-h-[44px] min-w-[28px] flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded-full"
+                    >
+                      <span
+                        className={`block h-2 rounded-full transition-all duration-300 motion-reduce:transition-none ${
+                          active ? "w-6 bg-marina-700" : "w-2 bg-silk-300"
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* CTA mobile no fim da seção */}
-            <div className="mt-5">
+            <div className="mt-3">
               <Link
                 href={catalogHref}
                 className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full border border-marina-700/30 bg-white px-5 py-3 text-xs font-bold uppercase tracking-wider text-marina-700 hover:bg-marina-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
