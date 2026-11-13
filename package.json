@@ -10,6 +10,7 @@
     "test": "tsx tests/e2e/runner.ts",
     "test:images": "tsx tests/verify-images-http200.ts",
     "seed": "tsx src/scripts/seed-linda-rea.ts",
+    "db:push-turso": "tsx src/scripts/push-to-turso.ts",
     "seed:truss-brae": "tsx src/scripts/seed-truss-brae.ts",
     "images:update": "tsx src/scripts/update-product-images.ts",
     "drizzle:generate": "drizzle-kit generate",
