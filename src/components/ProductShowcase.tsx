@@ -172,7 +172,7 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
             id="vitrine-titulo"
             className="font-serif text-2xl font-normal sm:text-4xl sm:font-bold text-onyx-950 tracking-tight leading-snug"
           >
-            Mais Vendidos &amp; Destaques
+            Mais Vendidos e Destaques
           </h2>
 
           <div className="hidden md:flex items-center gap-4">

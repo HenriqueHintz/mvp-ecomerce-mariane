@@ -128,61 +128,93 @@ function IndexCell({ brand, index }: { brand: ShowcaseBrand; index: number }) {
 function MobileBrandGridCarousel() {
   const railRef = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(0);
+  const totalPages = 2;
 
-  const page1Top = INDEX_BRANDS.slice(0, 4); // Wella, L'Oréal, Truss, Braé
-  const page2Brands = INDEX_BRANDS.slice(4, 6); // Lola, Amend
+  const page1Bottom = INDEX_BRANDS.slice(0, 2); // Wella, L'Oréal
+  const page2Brands = INDEX_BRANDS.slice(2, 6); // Truss, Braé, Lola, Amend
 
   const onScroll = () => {
     const el = railRef.current;
     if (!el || el.clientWidth === 0) return;
-    setPage(Math.min(1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth))));
+    setPage(Math.min(totalPages - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth))));
   };
 
   const goToPage = (target: number) => {
+    const clamped = Math.min(totalPages - 1, Math.max(0, target));
     const el = railRef.current;
     if (!el) return;
-    el.scrollTo({ left: target * el.clientWidth, behavior: "smooth" });
-    setPage(target);
+    el.scrollTo({ left: clamped * el.clientWidth, behavior: "smooth" });
+    setPage(clamped);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      goToPage(page + 1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      goToPage(page - 1);
+    }
   };
 
   const renderBrandCard = (
     b: ShowcaseBrand,
-    opts: { tall?: boolean; badge?: string; priority?: boolean } = {}
+    opts: { featured?: boolean; badge?: string; priority?: boolean } = {}
   ) => {
     const isDark = b.tone === "escuro";
+    const src = opts.featured && b.featuredScene ? b.featuredScene : b.scene;
     return (
       <Link
         key={b.slug}
         href={b.href}
         aria-label={`Ver produtos ${b.name}`}
-        className={`relative isolate flex items-center justify-center rounded-2xl overflow-hidden border border-silk-200/80 transition-transform active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marina-700 ${
-          opts.tall ? "col-span-2 h-[130px]" : "h-[112px]"
+        className={`relative isolate block rounded-2xl overflow-hidden border border-silk-200/80 transition-transform active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marina-700 ${
+          opts.featured ? "col-span-2 aspect-video" : "aspect-[4/5]"
         }`}
       >
         <Image
-          src={b.scene}
-          alt=""
+          src={src}
+          alt={b.name}
           fill
-          sizes={opts.tall ? "92vw" : "46vw"}
-          priority={opts.priority}
+          quality={85}
+          sizes={opts.featured ? "(max-width: 767px) 92vw" : "(max-width: 767px) 46vw"}
+          priority={Boolean(opts.priority)}
+          style={{ objectPosition: b.objectPosition ?? "50% 60%" }}
           className="object-cover"
         />
         <span
           aria-hidden="true"
-          className="absolute inset-0"
+          className="absolute inset-x-0 bottom-0 h-[56%]"
           style={{
             background: isDark
-              ? "linear-gradient(to bottom, rgba(18,10,13,.66) 0%, rgba(18,10,13,.46) 100%)"
-              : "linear-gradient(to bottom, rgba(250,247,251,.84) 0%, rgba(250,247,251,.68) 100%)",
+              ? "linear-gradient(to top, rgba(18,10,13,0.88) 0%, rgba(18,10,13,0.48) 55%, rgba(18,10,13,0) 100%)"
+              : "linear-gradient(to top, rgba(250,247,251,0.95) 0%, rgba(250,247,251,0.62) 55%, rgba(250,247,251,0) 100%)",
           }}
         />
-        <span className="relative z-10 flex flex-col items-center justify-center gap-1.5 px-3 text-center">
-          {opts.badge && (
-            <span className="text-xs font-semibold text-marina-700 bg-white/90 px-2.5 py-0.5 rounded-full border border-marina-200/70">
-              {opts.badge}
-            </span>
-          )}
-          <Logo brand={b} scale={opts.tall ? 0.78 : 0.56} color={heroLogoColor(b.tone)} />
+        {opts.badge && (
+          <span className="absolute left-3 top-3 z-10 text-xs font-semibold text-marina-800 bg-white/95 px-2.5 py-1 rounded-full border border-marina-200/80 shadow-xs">
+            {opts.badge}
+          </span>
+        )}
+        <span className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-center px-3 pb-3">
+          <span
+            aria-hidden="true"
+            className="block shrink-0"
+            style={{
+              width: opts.featured ? "64%" : "68%",
+              maxWidth: opts.featured ? 220 : 124,
+              height: opts.featured ? 36 : 38,
+              backgroundColor: heroLogoColor(b.tone),
+              WebkitMaskImage: `url(${b.logo})`,
+              maskImage: `url(${b.logo})`,
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              WebkitMaskPosition: "center bottom",
+              maskPosition: "center bottom",
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+            }}
+          />
         </span>
       </Link>
     );
@@ -193,69 +225,55 @@ function MobileBrandGridCarousel() {
       <div
         ref={railRef}
         onScroll={onScroll}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
         role="region"
         aria-roledescription="carrossel"
         aria-label="Marcas oficiais"
-        className="bs-rail -mx-4 px-4 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-pl-4"
+        className="bs-rail -mx-4 px-4 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-pl-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded-2xl"
       >
-        {/* Página 1: 5 cards no padrão 2 + 2 + 1 (Madressenza em destaque) */}
+        {/* Página 1: Madressenza em 16:9 no topo + 2 cards 4:5 embaixo */}
         <div className="w-full shrink-0 snap-start grid grid-cols-2 gap-3">
-          {page1Top.map((b, i) => renderBrandCard(b, { priority: i < 2 }))}
           {renderBrandCard(FEATURED_BRAND, {
-            tall: true,
+            featured: true,
             badge: "Revendedora Oficial",
+            priority: true,
           })}
+          {page1Bottom.map((b) => renderBrandCard(b))}
         </div>
 
-        {/* Página 2: 4 cards no padrão 2 + 2 */}
+        {/* Página 2: Grade 2x2 com as 4 marcas restantes em 4:5 */}
         <div className="w-full shrink-0 snap-start grid grid-cols-2 gap-3">
           {page2Brands.map((b) => renderBrandCard(b))}
-          <Link
-            href="/produtos"
-            className="h-[112px] rounded-2xl border border-marina-200/80 bg-marina-50 hover:bg-marina-100/70 text-marina-800 flex flex-col items-center justify-center gap-1 px-3 text-center transition-colors active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marina-700"
-          >
-            <span className="font-serif text-lg font-medium text-marina-800">
-              Todas as marcas
-            </span>
-            <span className="text-xs font-semibold text-marina-700">
-              Ver catálogo →
-            </span>
-          </Link>
-          <Link
-            href="/produtos?ordem=promocoes"
-            className="h-[112px] rounded-2xl border border-onyx-800 bg-onyx-950 hover:bg-marina-900 text-white flex flex-col items-center justify-center gap-1 px-3 text-center transition-colors active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marina-700"
-          >
-            <span className="font-serif text-lg font-medium text-white">
-              Promoções
-            </span>
-            <span className="text-xs font-medium text-marina-200">
-              Ofertas da semana →
-            </span>
-          </Link>
         </div>
       </div>
 
-      {/* Indicadores de página acessíveis */}
-      <div className="mt-3 flex items-center justify-center gap-1" aria-label="Páginas de marcas">
-        {[0, 1].map((idx) => {
-          const active = page === idx;
-          return (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => goToPage(idx)}
-              aria-label={`Página ${idx + 1} de 2`}
-              aria-current={active ? "true" : undefined}
-              className="min-h-[44px] min-w-[32px] flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded-full"
-            >
-              <span
-                className={`block h-2 rounded-full transition-all duration-300 motion-reduce:transition-none ${
-                  active ? "w-6 bg-marina-700" : "w-2 bg-silk-300"
-                }`}
-              />
-            </button>
-          );
-        })}
+      {/* Indicadores de página acessíveis (>= 24px de toque) + contador */}
+      <div className="mt-3 flex items-center justify-center gap-3" aria-label="Páginas de marcas">
+        <div className="flex items-center gap-1">
+          {[0, 1].map((idx) => {
+            const active = page === idx;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => goToPage(idx)}
+                aria-label={`Página ${idx + 1} de ${totalPages}`}
+                aria-current={active ? "true" : undefined}
+                className="min-h-[32px] min-w-[32px] flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded-full"
+              >
+                <span
+                  className={`block h-2 rounded-full transition-all duration-300 motion-reduce:transition-none ${
+                    active ? "w-6 bg-marina-700" : "w-2 bg-silk-300"
+                  }`}
+                />
+              </button>
+            );
+          })}
+        </div>
+        <span className="text-xs font-medium text-onyx-600 tabular-nums">
+          {page + 1}/{totalPages}
+        </span>
       </div>
     </div>
   );

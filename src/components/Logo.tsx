@@ -71,9 +71,9 @@ export function Logo({
         <Image
           src="/logo-mariane-banner.png"
           alt={alt}
-          width={sizeConfig.w * 2}
-          height={sizeConfig.h * 2}
-          sizes="(max-width: 767px) 170px, 240px"
+          width={sizeConfig.w * 3}
+          height={sizeConfig.h * 3}
+          sizes="(max-width: 767px) 210px, 240px"
           priority
           className="h-full w-auto object-contain select-none"
         />

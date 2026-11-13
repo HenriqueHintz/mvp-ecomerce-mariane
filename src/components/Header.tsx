@@ -235,7 +235,7 @@ export default function Header() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-[44px_1fr_auto] md:flex md:items-center md:justify-between h-[60px] md:h-28 gap-2 md:gap-3 lg:gap-6">
+          <div className="grid grid-cols-[44px_1fr_auto] md:flex md:items-center md:justify-between h-16 md:h-28 gap-3 md:gap-3 lg:gap-6">
             {/* Mobile Menu Toggle (44x44) */}
             <button
               ref={menuTriggerRef}
@@ -258,7 +258,7 @@ export default function Header() {
                 variant="horizontal"
                 size="sm"
                 tone="dark"
-                className="md:hidden !h-11 w-auto"
+                className="md:hidden !h-12 sm:!h-[52px] w-auto"
                 alt="Mariane Cosméticos"
               />
               <Logo

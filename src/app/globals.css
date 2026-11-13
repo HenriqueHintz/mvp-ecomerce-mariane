@@ -24,7 +24,7 @@
   --whatsapp-dark: #128C7E;
 
   /* Altura total do topo (barra de avisos + header) para Hero em 100svh */
-  --header-h: 92px;
+  --header-h: 96px;
 }
 
 @media (min-width: 768px) {
