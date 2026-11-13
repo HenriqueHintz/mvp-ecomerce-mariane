@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { db, products, brands, productImages } from "@/db";
-import ProductCard from "@/components/ProductCard";
+import ProductShowcase from "@/components/ProductShowcase";
 import StoreMapSection from "@/components/StoreMapSection";
 import Hero, { HeroPanoramicBanner } from "@/components/home/Hero";
 import {
@@ -58,14 +58,27 @@ async function getHomeData() {
 
     const bestSellers = enrichedProducts.filter((p) => p.isBestSeller === 1).slice(0, 8);
     const featured = enrichedProducts.filter((p) => p.isFeatured === 1).slice(0, 8);
+    const promos = enrichedProducts
+      .filter((p) => typeof p.promoPrice === "number" && p.promoPrice > 0 && p.promoPrice < p.price)
+      .slice(0, 8);
     const madressenzaItems = enrichedProducts.filter((p) => p.brandId === "brand_madressenza").slice(0, 4);
     const allRecent = enrichedProducts.slice(0, 12);
     const heroProducts = resolveHeroCarouselProducts(enrichedProducts);
+
+    // Combinar produtos variados por marca/destaque/promoção (~24 itens únicos) para a vitrine interativa
+    const showcaseMap = new Map<string, (typeof enrichedProducts)[number]>();
+    for (const item of [...bestSellers, ...promos, ...featured, ...madressenzaItems, ...enrichedProducts]) {
+      if (!showcaseMap.has(item.id)) {
+        showcaseMap.set(item.id, item);
+      }
+      if (showcaseMap.size >= 24) break;
+    }
 
     return {
       bestSellers: bestSellers.length > 0 ? bestSellers : allRecent.slice(0, 4),
       featured: featured.length > 0 ? featured : allRecent.slice(4, 8),
       madressenzaItems,
+      showcaseProducts: Array.from(showcaseMap.values()),
       all: allRecent,
       heroProducts,
     };
@@ -75,6 +88,7 @@ async function getHomeData() {
       bestSellers: [],
       featured: [],
       madressenzaItems: [],
+      showcaseProducts: [],
       all: [],
       heroProducts: getDefaultHeroCarouselProducts(),
     };
@@ -82,7 +96,7 @@ async function getHomeData() {
 }
 
 export default async function HomePage() {
-  const { bestSellers, heroProducts } = await getHomeData();
+  const { showcaseProducts, heroProducts } = await getHomeData();
 
   return (
     <div className="flex flex-col">
@@ -93,21 +107,7 @@ export default async function HomePage() {
       <BrandShowcase />
 
       {/* 3. Vitrine: Mais Vendidos & Destaques */}
-      <section className="bg-silk-50/50 py-12 sm:py-16 lg:py-20 border-b border-silk-200/80">
-        <Container>
-          <SectionHeader
-            title="Mais Vendidos &amp; Destaques"
-            actionLabel="Ver Catálogo Completo"
-            actionHref="/produtos?ordem=mais_vendidos"
-          />
-
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
-            {bestSellers.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
-          </div>
-        </Container>
-      </section>
+      <ProductShowcase products={showcaseProducts} />
 
       {/* 3. Sobre a Loja Física & Localização em Lages – SC */}
       <StoreMapSection />

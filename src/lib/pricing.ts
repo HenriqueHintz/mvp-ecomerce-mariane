@@ -10,12 +10,16 @@ export function toReais(cents: number): number {
   return cents / 100;
 }
 
-export function formatBrl(cents: number): string {
-  const reais = toReais(cents);
-  return reais.toLocaleString("pt-BR", {
+export function formatBRL(reais: number): string {
+  const safe = Number.isFinite(reais) ? reais : 0;
+  return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  });
+  }).format(safe);
+}
+
+export function formatBrl(cents: number): string {
+  return formatBRL(toReais(cents));
 }
 
 export interface ItemPricingSource {

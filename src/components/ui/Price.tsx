@@ -1,4 +1,5 @@
 import React from "react";
+import { formatBRL } from "@/lib/pricing";
 
 export interface PriceProps {
   price: number;
@@ -32,35 +33,38 @@ export function Price({
       ? installmentValue
       : Math.round((currentPrice / installments) * 100) / 100;
   const pixMultiplier = (100 - pixDiscountPercent) / 100;
-  const pixPrice = (currentPrice * pixMultiplier).toFixed(2);
+  const pixValue = currentPrice * pixMultiplier;
 
   const mainPriceClass =
     size === "lg"
       ? "text-2xl sm:text-3xl font-bold text-onyx-950 tabular-nums tracking-tight"
       : size === "sm"
-      ? "text-base font-bold text-onyx-950 tabular-nums tracking-tight"
-      : "text-lg sm:text-[1.1875rem] font-bold text-onyx-950 tabular-nums tracking-tight";
+      ? "text-lg font-bold text-onyx-950 tabular-nums tracking-tight"
+      : "text-xl sm:text-[1.3125rem] font-bold text-onyx-950 tabular-nums tracking-tight";
 
   return (
-    <div className={`font-sans tabular-nums space-y-0.5 ${className}`.trim()}>
+    <div className={`font-sans tabular-nums space-y-1 ${className}`.trim()}>
+      {/* Nível 1: Preço riscado + Preço final em destaque */}
       <div className="flex items-baseline gap-2 flex-wrap">
         {hasRealPromo && (
-          <span className="text-xs text-onyx-400 line-through font-normal">
-            R$ {price.toFixed(2)}
+          <span className="text-xs text-onyx-500 line-through font-normal">
+            {formatBRL(price)}
           </span>
         )}
-        <span className={mainPriceClass}>R$ {currentPrice.toFixed(2)}</span>
+        <span className={mainPriceClass}>{formatBRL(currentPrice)}</span>
       </div>
 
+      {/* Nível 2: PIX em verde-esmeralda */}
       {showPix && (
-        <p className="text-xs text-emerald-700 font-medium">
-          R$ {pixPrice} à vista no PIX ({pixDiscountPercent}% OFF)
+        <p className="text-[13px] leading-snug text-emerald-800 font-semibold">
+          {formatBRL(pixValue)} no PIX ({pixDiscountPercent}% OFF)
         </p>
       )}
 
+      {/* Nível 3: Parcelamento discreto */}
       {showInstallments && (
-        <p className="text-[11px] text-onyx-500 font-normal">
-          ou {installments}x de R$ {instVal.toFixed(2)} sem juros
+        <p className="text-xs leading-snug text-onyx-600 font-normal">
+          ou {installments}x de {formatBRL(instVal)} sem juros
         </p>
       )}
     </div>

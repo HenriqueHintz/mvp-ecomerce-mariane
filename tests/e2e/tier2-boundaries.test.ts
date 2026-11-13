@@ -149,12 +149,13 @@ describe("Tier 2 - Boundary & Corner Cases", () => {
     );
 
     test(
-      "2.2.3 Tablet viewport (768px): Product vitrines adapt to 2 columns",
+      "2.2.3 Tablet viewport (768px): Product vitrines adapt to 3-column tablet grid and mobile scroll-snap",
       () => {
-        const homePath = path.join(ROOT_DIR, "src", "app", "page.tsx");
-        const homeCode = fs.readFileSync(homePath, "utf-8");
+        const showcasePath = path.join(ROOT_DIR, "src", "components", "ProductShowcase.tsx");
+        const showcaseCode = fs.readFileSync(showcasePath, "utf-8");
 
-        expect(homeCode).toContain("sm:grid-cols-2", "Product grid must adapt to 2 columns on tablet/small screens");
+        expect(showcaseCode).toContain("md:grid-cols-3", "Product grid must adapt to 3 columns on tablet screens");
+        expect(showcaseCode).toContain("snap-x snap-mandatory", "Mobile vitrine must provide horizontal scroll-snap carousel");
       },
       { tier: 2, milestone: "M3", authoritativeSource: "ORIGINAL_REQUEST.md Acceptance Criteria §UI" }
     );
@@ -162,10 +163,10 @@ describe("Tier 2 - Boundary & Corner Cases", () => {
     test(
       "2.2.4 Desktop viewport (1280px): Full desktop layout activates 4-column grid and secondary nav",
       () => {
-        const homePath = path.join(ROOT_DIR, "src", "app", "page.tsx");
-        const homeCode = fs.readFileSync(homePath, "utf-8");
+        const showcasePath = path.join(ROOT_DIR, "src", "components", "ProductShowcase.tsx");
+        const showcaseCode = fs.readFileSync(showcasePath, "utf-8");
 
-        expect(homeCode).toContain("lg:grid-cols-4", "Product grid must display 4 columns on desktop");
+        expect(showcaseCode).toContain("lg:grid-cols-4", "Product grid must display 4 columns on desktop");
       },
       { tier: 2, milestone: "M3", authoritativeSource: "ORIGINAL_REQUEST.md Acceptance Criteria §UI" }
     );

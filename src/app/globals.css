@@ -414,3 +414,16 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .brand-showcase .bs-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
+
+
+/* Vitrine - subtle scroll entrance (once) */
+.vitrine-showcase[data-armed] .vitrine-item { opacity: 0; transform: translateY(10px); }
+.vitrine-showcase[data-armed][data-in] .vitrine-item {
+  opacity: 1;
+  transform: none;
+  transition: opacity 500ms cubic-bezier(.2,.7,.2,1), transform 500ms cubic-bezier(.2,.7,.2,1);
+  transition-delay: calc(var(--vi, 0) * 55ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .vitrine-showcase .vitrine-item { opacity: 1 !important; transform: none !important; transition: none !important; }
+}

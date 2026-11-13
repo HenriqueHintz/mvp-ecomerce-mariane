@@ -6,6 +6,7 @@ import { STORE_CONFIG, buildWhatsAppLink } from "@/config/store";
 import {
   toCents,
   toReais,
+  formatBRL,
   calculateItemPriceCents,
   calculatePixDiscountCents,
 } from "@/lib/pricing";
@@ -163,9 +164,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       });
       const lineTotalCents = unitPriceCents * item.quantity;
       message += `${idx + 1}. ${item.name} (${item.brandName || "Cosméticos"})\n`;
-      message += `   Qtd: ${item.quantity}x | R$ ${toReais(unitPriceCents).toFixed(
-        2
-      )} un. -> *R$ ${toReais(lineTotalCents).toFixed(2)}*\n`;
+      message += `   Qtd: ${item.quantity}x | ${formatBRL(
+        toReais(unitPriceCents)
+      )} un. -> *${formatBRL(toReais(lineTotalCents))}*\n`;
 
       return {
         unitPriceCents,
@@ -177,10 +178,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const pixDiscountCents = calculatePixDiscountCents(pixItems);
     const pixTotalCents = Math.max(0, subtotalCents - pixDiscountCents);
 
-    message += `\n💰 *Subtotal:* R$ ${toReais(subtotalCents).toFixed(2)}`;
-    message += `\n💎 *No PIX (${COMMERCE_CONFIG.DEFAULT_PIX_DISCOUNT_PERCENT}% OFF):* R$ ${toReais(
-      pixTotalCents
-    ).toFixed(2)}`;
+    message += `\n💰 *Subtotal:* ${formatBRL(toReais(subtotalCents))}`;
+    message += `\n💎 *No PIX (${COMMERCE_CONFIG.DEFAULT_PIX_DISCOUNT_PERCENT}% OFF):* ${formatBRL(
+      toReais(pixTotalCents)
+    )}`;
     if (subtotalCents >= freeShippingThresholdCents) {
       message += `\n🚚 *Frete:* GRÁTIS 🎉`;
     } else {
