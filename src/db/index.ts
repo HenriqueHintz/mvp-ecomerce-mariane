@@ -6,13 +6,25 @@ import path from "path";
 // Em produção (Vercel) o sistema de arquivos é somente leitura e o `local.sqlite`
 // não é enviado no deploy: usamos um banco LibSQL hospedado (Turso) via variáveis
 // de ambiente. Sem elas, cai no arquivo SQLite local (desenvolvimento e testes).
-const remoteUrl = process.env.TURSO_DATABASE_URL;
+// Remove espaços, aspas e prefixo "Bearer" colados por engano no painel da Vercel
+// (aspas no token fazem o Turso responder HTTP 400).
+function cleanEnv(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const cleaned = value
+    .trim()
+    .replace(/^["'`]+|["'`]+$/g, "")
+    .replace(/^Bearer\s+/i, "")
+    .trim();
+  return cleaned || undefined;
+}
+
+const remoteUrl = cleanEnv(process.env.TURSO_DATABASE_URL);
 const isRemote = Boolean(remoteUrl);
 
 export const client = isRemote
   ? createClient({
       url: remoteUrl as string,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+      authToken: cleanEnv(process.env.TURSO_AUTH_TOKEN),
     })
   : createClient({
       url: `file:${path.resolve(process.cwd(), "local.sqlite")}`,
