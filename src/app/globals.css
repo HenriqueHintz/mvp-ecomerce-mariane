@@ -148,6 +148,235 @@ body {
   }
 }
 
+/* Hero Editorial — Coreografia de Entrada (< 1,2s), Cenas Full-Bleed e Crossfade Cinematográfico (700-900ms) */
+.hero-editorial [data-fx="subir"] {
+  transform: translateY(16px);
+  transition: opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-editorial [data-fx].fx-em-cena {
+  opacity: 1;
+  transform: none;
+}
+
+.hero-editorial [data-fx="palavras"] .fx-palavra {
+  transform: translateY(0.42em);
+  transition: opacity 0.42s ease-out,
+              transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-editorial [data-fx="palavras"].fx-em-cena .fx-palavra {
+  opacity: 1;
+  transform: none;
+}
+
+/* Ponto focal responsivo por slide (21:9 Desktop / 4:5 Celular) */
+.hero-scene-img {
+  object-fit: cover;
+  object-position: var(--fp-mobile, 50% 26%);
+}
+
+@media (min-width: 768px) {
+  .hero-scene-img {
+    object-position: var(--fp-desktop, 75% 50%);
+  }
+}
+
+/* Paralaxe sutil do plano de fundo no desktop (desativado no celular e em movimento reduzido) */
+.hero-parallax-layer {
+  transform: translate3d(0, 0, 0);
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .hero-parallax-layer {
+    transform: translate3d(var(--hero-px, 0px), var(--hero-py, 0px), 0) scale(1.015);
+    transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* Véu local suave apenas atrás do bloco de texto (sem caixa visível) */
+.hero-veil-light {
+  background: linear-gradient(
+    0deg,
+    rgba(250, 247, 251, 0.94) 0%,
+    rgba(250, 247, 251, 0.85) 38%,
+    rgba(250, 247, 251, 0.22) 52%,
+    rgba(250, 247, 251, 0) 64%
+  );
+}
+
+.hero-veil-dark {
+  background: linear-gradient(
+    0deg,
+    rgba(14, 7, 16, 0.92) 0%,
+    rgba(14, 7, 16, 0.80) 38%,
+    rgba(14, 7, 16, 0.20) 52%,
+    rgba(14, 7, 16, 0) 64%
+  );
+}
+
+@media (min-width: 768px) {
+  .hero-veil-light {
+    background: linear-gradient(
+      90deg,
+      rgba(250, 247, 251, 0.88) 0%,
+      rgba(250, 247, 251, 0.72) 34%,
+      rgba(250, 247, 251, 0.16) 50%,
+      rgba(250, 247, 251, 0) 62%
+    );
+  }
+
+  .hero-veil-dark {
+    background: linear-gradient(
+      90deg,
+      rgba(14, 7, 16, 0.84) 0%,
+      rgba(14, 7, 16, 0.65) 34%,
+      rgba(14, 7, 16, 0.15) 50%,
+      rgba(14, 7, 16, 0) 62%
+    );
+  }
+}
+
+/* Sombra de contato e reflexo complementar em CSS para slides Plano B */
+.hero-plano-b-fx {
+  background: radial-gradient(
+    ellipse 24% 4.5% at 50% 49%,
+    rgba(18, 8, 16, 0.18) 0%,
+    rgba(18, 8, 16, 0) 100%
+  );
+}
+
+@media (min-width: 768px) {
+  .hero-plano-b-fx {
+    background: radial-gradient(
+      ellipse 16% 5% at 75% 84%,
+      rgba(18, 8, 16, 0.20) 0%,
+      rgba(18, 8, 16, 0) 100%
+    );
+  }
+}
+
+/* Animação de carga inicial (~1,6s, escala 1.06 -> 1) */
+@keyframes heroSceneInitialZoom {
+  0% {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animação de troca de slide (800ms, escala 1.04 -> 1 + deslocamento horizontal 28px no sentido da seta) */
+@keyframes heroSceneSlideEnterNext {
+  0% {
+    opacity: 0;
+    transform: scale(1.04) translate3d(28px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroSceneSlideEnterPrev {
+  0% {
+    opacity: 0;
+    transform: scale(1.04) translate3d(-28px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroSceneSlideExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes heroBannerZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes heroBannerFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes heroReducedFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.hero-scene-initial-enter {
+  animation: heroSceneInitialZoom 1600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-scene-slide-enter-next {
+  animation: heroSceneSlideEnterNext 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-scene-slide-enter-prev {
+  animation: heroSceneSlideEnterPrev 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-scene-slide-exit {
+  animation: heroSceneSlideExit 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-banner-enter {
+  animation: heroBannerZoomIn 750ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-banner-exit {
+  animation: heroBannerFadeOut 750ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.fx-reduzido .hero-scene-initial-enter,
+.fx-reduzido .hero-scene-slide-enter-next,
+.fx-reduzido .hero-scene-slide-enter-prev,
+.fx-reduzido .hero-banner-enter {
+  animation: heroReducedFadeIn 200ms ease-out forwards !important;
+  transform: none !important;
+}
+
+.fx-reduzido .hero-scene-slide-exit,
+.fx-reduzido .hero-banner-exit {
+  animation: heroBannerFadeOut 200ms ease-out forwards !important;
+  transform: none !important;
+}
+
+.fx-reduzido .hero-parallax-layer {
+  transform: none !important;
+  transition: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -155,4 +384,33 @@ body {
   .animate-brand-marquee {
     animation: none !important;
   }
+  .hero-scene-initial-enter,
+  .hero-scene-slide-enter-next,
+  .hero-scene-slide-enter-prev,
+  .hero-banner-enter {
+    animation: heroReducedFadeIn 200ms ease-out forwards !important;
+    transform: none !important;
+  }
+  .hero-scene-slide-exit,
+  .hero-banner-exit {
+    animation: heroBannerFadeOut 200ms ease-out forwards !important;
+    transform: none !important;
+  }
+  .hero-parallax-layer {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Brand Showcase - reveal on scroll (once) */
+.brand-showcase[data-armed] .bs-reveal { opacity: 0; transform: translateY(14px); }
+.brand-showcase[data-armed][data-in] .bs-reveal {
+  opacity: 1; transform: none;
+  transition: opacity 700ms cubic-bezier(.2,.7,.2,1), transform 700ms cubic-bezier(.2,.7,.2,1);
+  transition-delay: calc(var(--i, 0) * 75ms);
+}
+.bs-rail { scrollbar-width: none; }
+.bs-rail::-webkit-scrollbar { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .brand-showcase .bs-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
 }

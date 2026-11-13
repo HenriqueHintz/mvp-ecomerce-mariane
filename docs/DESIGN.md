@@ -164,6 +164,28 @@ Todos os componentes base em [`src/components/ui/`](../src/components/ui/) utili
   - Seletores de modalidade de entrega e meio de pagamento utilizam `role="radiogroup"` e `role="radio"` com `aria-checked` e anel `:focus-visible`.
   - Valores monetários em centavos, quantidades, códigos de pedido (`MC-YYYYMMDD-XXXXXX`) e contadores utilizam `tabular-nums` para alinhamento ótico sem jitter.
 
+### 7.4 Padrão da Hero Editorial Full-Bleed (`src/components/home/Hero.tsx` & `HeroScenes.tsx`)
+- **Estrutura Borda a Borda (`100vw`, `CLS = 0`):** Banner em largura total da tela (sem card, sem borda, sem cantos arredondados), altura fixa `clamp(560px, 78vh, 760px)` no desktop e `88svh` (`min-h-[540px]`) no celular.
+- **Elementos Permitidos (Exclusivamente 4):**
+  1. Nome da marca (`"Mariane Cosméticos"`, `uppercase tracking-[0.28em] text-[11px] sm:text-xs font-semibold` acima do slogan).
+  2. Slogan (`<h1>` em `Playfair Display`: `"Perfume que envolve, olhar que guarda, toque que desperta"`).
+  3. Dois botões: `"Ver Catálogo"` (principal → `/produtos`, fundo Roxo Imperial `#75066A`) e `"Consultoria no WhatsApp"` (secundário → link oficial `5549991251617`).
+  4. Controles do banner: setas circulares translúcidas nas laterais (`Slide anterior` / `Próximo slide`, `backdrop-blur-md`, ganham `#75066A` no hover/foco, `≥ 44×44px`) e indicadores finos (traços) na base (`Ir para o slide X de 5`, traço ativo `w-9 h-[3px]`, alvos de toque `≥ 44×44px`; posicionados acima dos botões no celular e na base central no desktop).
+  - *Proibido na Hero:* nome ou preço escrito do produto, selos, tags de frete/PIX, categorias ou logos de marcas.
+- **Cenas Publicitárias no Plano de Fundo (`src/data/hero-slides.ts` & `public/hero/generated/`):**
+  - Arte-direção via `<picture>` + `getImageProps` (`next/image`), `sizes="100vw"`, `priority` exclusivamente no primeiro slide e preload automático do próximo slide.
+  - **Desktop (`21:9`, `2400×1030`, WebP `≤ 350 KB`):** produto posicionado no terço direito (`60–75%` da altura); `45%+` da esquerda limpo e calmo para o bloco de texto fixo.
+  - **Celular (`4:5`, `1080×1350`, WebP `≤ 220 KB`):** produto posicionado na metade superior; metade inferior limpa e calma para texto, indicadores e botões.
+  - **Controle de Qualidade (Plano A vs. Plano B):** Toda cena gerada passa por inspeção lado a lado com a foto original. Em caso de micro-texto distorcido após tentativas, aplica-se o **Plano B**: cenário limpo sem produto (`-scene-desktop.webp` / `-scene-mobile.webp`) + recorte real da embalagem (`-cutout.webp`) com sombra de contato e reflexo em CSS (`.hero-plano-b-fx`). Registro auditável obrigatório em `public/hero/generated/MANIFEST.md`.
+  - **Vínculo com o Catálogo:** Nome e link do produto (`/produto/[slug]`) vêm dinamicamente do catálogo (`resolveHeroSlides`), com área clicável sobre o produto (`aria-label="Ver produto <nome>"`).
+- **Tons Adaptativos (`"claro"` e `"escuro"`) & Véu Local Suave:**
+  - Cada slide declara `tone: "claro" | "escuro"`. Texto, botões e controles alternam suas cores suavemente (`duration-500`).
+  - Véu local suave (`.hero-veil-light` / `.hero-veil-dark`) aplicado apenas atrás da zona de texto (gradiente da esquerda no desktop, de baixo no celular), sem caixa visível, garantindo contraste WCAG AA (`≥ 4.5:1` texto, `≥ 3.0:1` título grande) no pior ponto de cada slide.
+- **Direção Cinematográfica & Acessibilidade:**
+  - Na carga inicial: a cena surge com fade e zoom sutil (`scale(1.06) → 1` em `1.6s`); nome, slogan (palavra por palavra) e botões surgem em `< 1.2s`.
+  - Na troca de slide (apenas por clique em seta/indicador, teclado `←`/`→` ou swipe no celular; **sem autoplay**, com loop): crossfade de `800ms`, entrada com `scale(1.04) → 1` e deslocamento horizontal de `28px` no sentido da seta; o slogan não reanima.
+  - Paralaxe sutil com o mouse no desktop (`±6px`), desativado no celular e em `prefers-reduced-motion: reduce` (que reduz todas as transições a um fade curto de `200ms`).
+
 ---
 
 ## 8. Proibições Estritas (Invioláveis)
@@ -182,3 +204,15 @@ Antes de encerrar qualquer tarefa de UI ou conteúdo:
 - [ ] Todos os textos e links citam exclusivamente **Mariane Cosméticos**, WhatsApp **5549991251617**, Instagram **@mariane_cosmeticos_01**, endereço **Rua Blumenau, Nº 623, Lages – SC (CEP: 88505-300)** e slogan **"Linda é a mulher que bem se quer"**?
 - [ ] O contraste entre texto e fundo atende ao mínimo WCAG AA (`4.5:1` para texto normal, `3.0:1` para títulos grandes e componentes)?
 - [ ] `npm run build` executa com `exit code 0` sem erros de tipos ou de manifesto?
+
+
+## Brand Showcase (home, abaixo da hero)
+
+Componente `src/components/home/BrandShowcase.tsx`, dados em `src/data/brands.ts`. Cena calma e confiante (a hero e intensa), sem cards.
+
+- **Conteudo:** apenas o titulo `Marcas Profissionais & Alta Perfumaria` e os 7 logos oficiais, cada um com link relativo `/produtos?marca=<slug>`.
+- **Logos:** arquivos oficiais em `public/brands/official/` (SVG/PNG transparente), pintados por CSS mask (so a cor muda, o desenho nunca). Nunca gerar nem redesenhar logo.
+- **Desktop (lg):** Madressenza em painel 5 colunas com cena sempre visivel; as outras 6 marcas em grade 3x2 (7 colunas) com fios `silk-200`. Normal: Onyx `#1A0918` a 72%. Hover/foco (500 ms, sem mudar layout): cena 4:5 surge, veu protege o logo, logo vira marfim `#FAF7FB` em cenas escuras, aparece "Ver produtos →" em pilula (marfim sobre cena clara, Onyx sobre cena escura) para garantir contraste AA.
+- **Celular:** trilho horizontal com `scroll-snap`, paineis 4:5 com cena + logo, proximo painel parcialmente visivel e tracos finos indicando a posicao.
+- **Entrada:** revelacao na rolagem uma unica vez, atraso de 75 ms entre itens; desligada com `prefers-reduced-motion`.
+- **Cenas:** `public/brands/scenes/*-4x5.webp` (+ `madressenza-16x9.webp`), ver `MANIFEST.md`.

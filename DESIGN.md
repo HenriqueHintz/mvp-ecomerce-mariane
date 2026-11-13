@@ -76,6 +76,11 @@
 - **Botões (`src/components/ui/Button.tsx`):** Altura mínima de toque `44px` (`min-h-[44px]`), foco visível `focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2`, suporte a `disabled:opacity-50`.
 - **Inputs Acessíveis (`CheckoutContact`, `CheckoutDelivery`, `AdminLoginPage`):** Associados a `<label htmlFor>`, `autoComplete` explícito, `aria-invalid`, `aria-describedby` apontando para mensagem de erro com `role="alert"`.
 - **Preços (`src/components/ui/Price.tsx` & `src/lib/pricing.ts`):** Operam em centavos inteiros (`cents`), renderizados com `tabular-nums`, exibindo desconto apenas quando `promoPriceCents < priceCents`.
+- **Hero Editorial Full-Bleed (`src/components/home/Hero.tsx` & `HeroScenes.tsx`):**
+  - **Estrutura Borda a Borda (`100vw`, `CLS = 0`):** Largura total sem card/borda/cantos arredondados; altura `clamp(560px, 78vh, 760px)` no desktop e `88svh` (`min-h-[540px]`) no celular.
+  - **Elementos Permitidos (Exclusivamente 4):** (1) `"Mariane Cosméticos"` pequeno e espaçado acima do slogan; (2) Slogan `<h1>` em `Playfair Display` (`"Perfume que envolve, olhar que guarda, toque que desperta"`); (3) Botões `"Ver Catálogo"` (`→ /produtos`, Roxo Imperial `#75066A`) e `"Consultoria no WhatsApp"` (`5549991251617`); (4) Setas laterais circulares translúcidas (`backdrop-blur-md`, hover/foco `#75066A`, `≥ 44×44px`) + indicadores finos em traço na base (acima dos botões no celular, na base central no desktop). Proibido nome/preço escrito de produto, selos, frete/PIX, categorias ou marcas.
+  - **Cenas Geradas (`src/data/hero-slides.ts` & `public/hero/generated/`):** `<picture>` + `getImageProps` (`next/image`), `sizes="100vw"`, `priority` apenas no slide 0 e preload do próximo slide. Desktop `21:9` (`2400×1030`, `≤ 350 KB`, produto no terço direito `60–75%` altura, `45%+` da esquerda limpo); Celular `4:5` (`1080×1350`, `≤ 220 KB`, produto na metade superior, metade inferior limpa). Controle de qualidade lado a lado com foto real (`Plano A` geração direta; `Plano B` cenário limpo + recorte real `-cutout.webp` com sombra de contato e reflexo em CSS `.hero-plano-b-fx`, documentado em `public/hero/generated/MANIFEST.md`). Nome e link (`/produto/[slug]`) vêm do catálogo, com área clicável sobre o produto (`aria-label`).
+  - **Tons (`"claro"` / `"escuro"`), Véu Local & Transições:** Troca suave de cor (`duration-500`) conforme `tone`; véu local suave (`.hero-veil-light` / `.hero-veil-dark`) só atrás do texto garantindo contraste WCAG AA (`≥ 4.5:1` texto, `≥ 3.0:1` título). Carga inicial com zoom sutil (`1.06 → 1` em `1.6s`) e entrada sequencial `< 1.2s`; troca manual de slide (setas, indicadores, `←`/`→`, swipe; sem autoplay, com loop) em crossfade de `800ms` (`scale(1.04) → 1` + `±28px`), sem reanimar o slogan. Paralaxe sutil de mouse no desktop e respeito total a `prefers-reduced-motion: reduce` (`200ms` fade).
 
 ---
 
@@ -90,3 +95,15 @@
 - Contraste WCAG 2.1 AA validado matematicamente (`python tests/stress-m1-tokens-css.py`).
 - Respeito a `@media (prefers-reduced-motion: reduce)` em animações contínuas.
 - Fidelidade absoluta aos ativos oficiais (`/logo-nav.png`, `/logo-white.png`, `/logo-mariane-banner.png`, `/logo.svg`, `src/app/icon.svg`, `/favicon.ico`).
+
+
+## Brand Showcase (home, abaixo da hero)
+
+Componente `src/components/home/BrandShowcase.tsx`, dados em `src/data/brands.ts`. Cena calma e confiante (a hero e intensa), sem cards.
+
+- **Conteudo:** apenas o titulo `Marcas Profissionais & Alta Perfumaria` e os 7 logos oficiais, cada um com link relativo `/produtos?marca=<slug>`.
+- **Logos:** arquivos oficiais em `public/brands/official/` (SVG/PNG transparente), pintados por CSS mask (so a cor muda, o desenho nunca). Nunca gerar nem redesenhar logo.
+- **Desktop (lg):** Madressenza em painel 5 colunas com cena sempre visivel; as outras 6 marcas em grade 3x2 (7 colunas) com fios `silk-200`. Normal: Onyx `#1A0918` a 72%. Hover/foco (500 ms, sem mudar layout): cena 4:5 surge, veu protege o logo, logo vira marfim `#FAF7FB` em cenas escuras, aparece "Ver produtos →".
+- **Celular:** trilho horizontal com `scroll-snap`, paineis 4:5 com cena + logo, proximo painel parcialmente visivel e tracos finos indicando a posicao.
+- **Entrada:** revelacao na rolagem uma unica vez, atraso de 75 ms entre itens; desligada com `prefers-reduced-motion`.
+- **Cenas:** `public/brands/scenes/*-4x5.webp` (+ `madressenza-16x9.webp`), ver `MANIFEST.md`.

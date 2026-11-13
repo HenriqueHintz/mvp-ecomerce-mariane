@@ -4,8 +4,12 @@ import Link from "next/link";
 import { db, products, brands, productImages } from "@/db";
 import ProductCard from "@/components/ProductCard";
 import StoreMapSection from "@/components/StoreMapSection";
-import HeroCarousel, { HeroPanoramicBanner } from "@/components/HeroCarousel";
-import BrandCarousel from "@/components/BrandCarousel";
+import Hero, { HeroPanoramicBanner } from "@/components/home/Hero";
+import {
+  getDefaultHeroCarouselProducts,
+  resolveHeroCarouselProducts,
+} from "@/data/hero-products";
+import BrandShowcase from "@/components/home/BrandShowcase";
 import { SectionHeader, Button, Container } from "@/components/ui";
 import { MessageCircle, ShoppingBag } from "lucide-react";
 
@@ -56,42 +60,43 @@ async function getHomeData() {
     const featured = enrichedProducts.filter((p) => p.isFeatured === 1).slice(0, 8);
     const madressenzaItems = enrichedProducts.filter((p) => p.brandId === "brand_madressenza").slice(0, 4);
     const allRecent = enrichedProducts.slice(0, 12);
+    const heroProducts = resolveHeroCarouselProducts(enrichedProducts);
 
     return {
       bestSellers: bestSellers.length > 0 ? bestSellers : allRecent.slice(0, 4),
       featured: featured.length > 0 ? featured : allRecent.slice(4, 8),
       madressenzaItems,
       all: allRecent,
+      heroProducts,
     };
   } catch (error) {
     console.error("Erro ao carregar dados da Home:", error);
-    return { bestSellers: [], featured: [], madressenzaItems: [], all: [] };
+    return {
+      bestSellers: [],
+      featured: [],
+      madressenzaItems: [],
+      all: [],
+      heroProducts: getDefaultHeroCarouselProducts(),
+    };
   }
 }
 
 export default async function HomePage() {
-  const { bestSellers } = await getHomeData();
+  const { bestSellers, heroProducts } = await getHomeData();
 
   return (
     <div className="flex flex-col">
-      {/* 1. Hero Section — Banner em Carrossel Panorâmico & Curadoria Oficial Madressenza */}
-      <section className="relative w-full">
-        <h1 className="sr-only">
-          Mariane Cosméticos — Tratamento Capilar Profissional e Perfumaria Fina Madressenza
-        </h1>
-        <HeroPanoramicBanner />
-      </section>
+      {/* 1. Hero Section — renderiza <h1 principal e carrossel de produtos (HeroPanoramicBanner) */}
+      <Hero products={heroProducts} />
 
-      {/* 2. Marcas Oficiais & Curadoria */}
-      <BrandCarousel />
+      {/* 2. Marcas Oficiais & Curadoria Madressenza */}
+      <BrandShowcase />
 
       {/* 3. Vitrine: Mais Vendidos & Destaques */}
       <section className="bg-silk-50/50 py-12 sm:py-16 lg:py-20 border-b border-silk-200/80">
         <Container>
           <SectionHeader
-            eyebrow="Seleção Exclusiva"
             title="Mais Vendidos &amp; Destaques"
-            subtitle="Fórmulas consagradas com alta concentração de ativos e resultados de salão"
             actionLabel="Ver Catálogo Completo"
             actionHref="/produtos?ordem=mais_vendidos"
           />
