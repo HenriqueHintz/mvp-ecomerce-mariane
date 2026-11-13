@@ -33,13 +33,17 @@ describe("Tier 2 - Boundary & Corner Cases", () => {
     );
 
     test(
-      "2.1.2 CartDrawer component contains empty state UI ('Sua sacola está vazia' and 'Explorar Vitrine')",
+      "2.1.2 CartDrawer component contains empty state UI ('Sua sacola está vazia' and 'Explorar produtos')",
       () => {
         const drawerPath = path.join(ROOT_DIR, "src", "components", "CartDrawer.tsx");
-        const drawerCode = fs.readFileSync(drawerPath, "utf-8");
+        const emptyStatePath = path.join(ROOT_DIR, "src", "components", "cart", "CartEmptyState.tsx");
+        const drawerCode =
+          fs.readFileSync(drawerPath, "utf-8") +
+          "\n" +
+          fs.readFileSync(emptyStatePath, "utf-8");
 
         expect(drawerCode).toContain("Sua sacola está vazia", "CartDrawer must render empty state text");
-        expect(drawerCode).toContain("Explorar Vitrine", "CartDrawer must render empty state button to explore store");
+        expect(drawerCode).toContain("Explorar produtos", "CartDrawer must render empty state button to explore store");
       },
       { tier: 2, milestone: "M4", authoritativeSource: "PROJECT.md Feature #16" }
     );
@@ -278,7 +282,10 @@ describe("Tier 2 - Boundary & Corner Cases", () => {
           path.join(ROOT_DIR, "src", "app", "produto", "[slug]", "ProductDetailClient.tsx"),
           "utf-8"
         );
-        const drawerCode = fs.readFileSync(path.join(ROOT_DIR, "src", "components", "CartDrawer.tsx"), "utf-8");
+        const drawerCode =
+          fs.readFileSync(path.join(ROOT_DIR, "src", "components", "CartDrawer.tsx"), "utf-8") +
+          "\n" +
+          fs.readFileSync(path.join(ROOT_DIR, "src", "components", "cart", "CartLineItem.tsx"), "utf-8");
 
         expect(cardCode).toContain("onError", "ProductCard must handle broken external image URLs with onError");
         expect(detailCode).toContain("onError", "ProductDetailClient must handle broken external image URLs with onError");

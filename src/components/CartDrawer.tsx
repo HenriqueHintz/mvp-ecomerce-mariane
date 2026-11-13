@@ -1,286 +1,260 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useCart } from "@/context/CartContext";
+import React, { useEffect, useRef, useState } from "react";
+import { RotateCcw, X } from "lucide-react";
 import {
-  X,
-  Plus,
-  Minus,
-  Trash2,
-  ShoppingBag,
-  MessageCircle,
-  ArrowRight,
-  CheckCircle2,
-  Sparkles,
-} from "lucide-react";
+  useCartActions,
+  useCartState,
+  useCartUI,
+} from "@/context/CartContext";
+import FreeShippingBar from "@/components/cart/FreeShippingBar";
+import CartLineItem from "@/components/cart/CartLineItem";
+import CartSummary from "@/components/cart/CartSummary";
+import CartEmptyState from "@/components/cart/CartEmptyState";
+
+const TRANSITION_MS = 280;
 
 export default function CartDrawer() {
   const {
     items,
-    isCartOpen,
-    setIsCartOpen,
-    removeItem,
-    updateQuantity,
-    subtotal,
+    subtotalCents,
+    pixTotalCents,
+    totalItems,
     freeShippingProgress,
-    remainingForFreeShipping,
+    remainingForFreeShippingCents,
+    lastRemovedItem,
+  } = useCartState();
+  const { isCartOpen, closeCart, announcement } = useCartUI();
+  const {
+    removeItem,
+    undoRemove,
+    dismissUndo,
+    updateQuantity,
     generateWhatsAppLink,
-  } = useCart();
+  } = useCartActions();
 
-  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+  // Mantém montado durante a animação de entrada e saída
+  const [rendered, setRendered] = useState(isCartOpen);
+  const [visible, setVisible] = useState(false);
 
-  if (!isCartOpen) return null;
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
+  useEffect(() => {
+    if (isCartOpen) {
+      previousFocusRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      setRendered(true);
+      const raf = window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => setVisible(true));
+      });
+      return () => window.cancelAnimationFrame(raf);
+    }
 
-  const handleWhatsAppCheckout = () => {
-    const url = generateWhatsAppLink();
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
+    setVisible(false);
+    const timer = window.setTimeout(() => {
+      setRendered(false);
+      // Devolve o foco ao gatilho original ao fechar
+      const trigger =
+        previousFocusRef.current ||
+        document.querySelector<HTMLElement>('[data-cart-trigger="true"]');
+      if (trigger && document.contains(trigger)) {
+        trigger.focus();
+      }
+    }, TRANSITION_MS);
+    return () => window.cancelAnimationFrame(timer);
+  }, [isCartOpen]);
+
+  // Trava scroll do body e gerencia Esc + focus trap
+  useEffect(() => {
+    if (!rendered) return;
+
+    const prevOverflow = document.body.style.overflow;
+    if (isCartOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    // Foca o botão de fechar ao abrir
+    if (isCartOpen) {
+      const focusTimer = window.setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 40);
+      return () => {
+        window.clearTimeout(focusTimer);
+        document.body.style.overflow = prevOverflow;
+      };
+    }
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [rendered, isCartOpen]);
+
+  useEffect(() => {
+    if (!isCartOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeCart();
+        return;
+      }
+
+      if (e.key !== "Tab" || !panelRef.current) return;
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isCartOpen, closeCart]);
+
+  if (!rendered) return null;
+
+  const whatsappHref = generateWhatsAppLink();
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-hidden animate-fadeIn"
+      className={`fixed inset-0 z-50 overflow-hidden ${
+        visible ? "pointer-events-auto" : "pointer-events-none"
+      }`}
       role="dialog"
       aria-modal="true"
-      aria-label="Sacola de compras"
+      aria-labelledby="cart-drawer-title"
     >
+      {/* Região aria-live para leitores de tela */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
+
       {/* Backdrop */}
       <div
-        onClick={() => setIsCartOpen(false)}
-        className="absolute inset-0 bg-onyx-950/50 backdrop-blur-sm transition-opacity"
+        onClick={closeCart}
+        aria-hidden="true"
+        className={`absolute inset-0 bg-onyx-950/55 backdrop-blur-[2px] transition-opacity duration-300 motion-reduce:transition-none ${
+          visible ? "opacity-100" : "opacity-0"
+        }`}
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-8 sm:pl-10">
-        <div className="w-screen max-w-md bg-white text-onyx-900 shadow-2xl flex flex-col h-full border-l border-silk-200 animate-slideUp">
-          {/* Header Simples & Refinado */}
-          <div className="px-6 py-5 border-b border-silk-200 flex items-center justify-between bg-white">
+      {/* Painel Lateral */}
+      <div className="fixed inset-y-0 right-0 flex w-full sm:max-w-md">
+        <div
+          ref={panelRef}
+          className={`w-full bg-white text-onyx-900 shadow-2xl flex flex-col h-full border-l border-silk-200 transition-transform duration-300 ease-out motion-reduce:transition-none ${
+            visible ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          {/* Cabeçalho fixo */}
+          <header className="px-5 sm:px-6 py-4 border-b border-silk-200 flex items-center justify-between bg-white shrink-0">
             <div className="flex items-baseline gap-2.5">
-              <h2 className="font-serif text-xl sm:text-2xl text-onyx-950 font-medium tracking-tight">
+              <h2
+                id="cart-drawer-title"
+                className="font-serif text-xl sm:text-2xl text-onyx-950 font-bold tracking-tight"
+              >
                 Sua Sacola
               </h2>
-              <span className="text-xs text-onyx-500 font-sans">
+              <span className="text-xs sm:text-[13px] text-onyx-700 font-medium tabular-nums">
                 {totalItems} {totalItems === 1 ? "item" : "itens"}
               </span>
             </div>
+
             <button
+              ref={closeButtonRef}
               type="button"
-              onClick={() => setIsCartOpen(false)}
-              className="w-9 h-9 flex items-center justify-center text-onyx-500 hover:text-onyx-900 rounded-full hover:bg-silk-100 transition-colors cursor-pointer"
+              onClick={closeCart}
               aria-label="Fechar sacola"
+              className="min-w-[44px] min-h-[44px] -mr-2 flex items-center justify-center text-onyx-700 hover:text-onyx-950 rounded-full hover:bg-silk-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
-          </div>
+          </header>
 
-          {/* Barra de Frete Grátis Minimalista */}
-          <div className="px-6 py-3.5 bg-silk-50/70 border-b border-silk-200/80">
-            <div className="flex items-center justify-between text-xs mb-2">
-              {remainingForFreeShipping === 0 ? (
-                <span className="text-emerald-dark flex items-center gap-1.5 font-semibold">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-whatsapp" />
-                  Parabéns! Você ganhou Frete Grátis!
-                </span>
-              ) : (
-                <span className="text-onyx-700">
-                  Faltam{" "}
-                  <strong className="text-marina-700 font-semibold">
-                    R$ {remainingForFreeShipping.toFixed(2)}
-                  </strong>{" "}
-                  para Frete Grátis
-                </span>
-              )}
-              <span className="text-onyx-500 text-[11px] font-medium">
-                {freeShippingProgress}%
+          {/* Barra de Frete Grátis */}
+          <FreeShippingBar
+            remainingForFreeShippingCents={remainingForFreeShippingCents}
+            freeShippingProgress={freeShippingProgress}
+            compact
+          />
+
+          {/* Toast Desfazer Remoção (5s) */}
+          {lastRemovedItem && (
+            <div
+              role="status"
+              className="mx-5 sm:mx-6 mt-3 px-3.5 py-2.5 rounded-xl bg-onyx-950 text-white text-xs flex items-center justify-between gap-3 shadow-md shrink-0 animate-scaleIn motion-reduce:animate-none"
+            >
+              <span className="truncate [word-spacing:0.04em]">
+                Removido: <strong>{lastRemovedItem.name}</strong>
               </span>
-            </div>
-            <div className="w-full h-1.5 bg-silk-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all duration-500 rounded-full ${
-                  remainingForFreeShipping === 0
-                    ? "bg-emerald-whatsapp"
-                    : "bg-marina-600"
-                }`}
-                style={{ width: `${freeShippingProgress}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Corpo: Lista de Itens ou Estado Vazio */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            {items.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center py-12 px-2 animate-fadeIn">
-                <div className="w-16 h-16 rounded-full bg-silk-100 flex items-center justify-center text-marina-400 mb-4 border border-silk-200/60">
-                  <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
-                </div>
-                <h3 className="font-serif text-xl sm:text-2xl text-onyx-950 mb-2">
-                  Sua sacola está vazia
-                </h3>
-                <p className="text-xs sm:text-sm text-onyx-600 max-w-xs leading-relaxed mb-8">
-                  Descubra os melhores tratamentos das marcas profissionais Madressenza, Wella, Truss, L&apos;Oréal e Braé.
-                </p>
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setIsCartOpen(false)}
-                  className="bg-onyx-950 hover:bg-marina-600 text-white px-8 py-3.5 rounded-full text-xs font-semibold tracking-wider uppercase transition-all shadow-sm hover:shadow-md cursor-pointer"
+                  onClick={undoRemove}
+                  className="inline-flex items-center gap-1 text-marina-200 hover:text-white font-bold underline underline-offset-2 cursor-pointer py-1 px-1.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
-                  Explorar Vitrine
+                  <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Desfazer</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={dismissUndo}
+                  aria-label="Fechar aviso de remoção"
+                  className="text-silk-300 hover:text-white p-1 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Lista rolável (apenas esta área rola) */}
+          <div className="flex-1 overflow-y-auto px-5 sm:px-6">
+            {items.length === 0 ? (
+              <CartEmptyState onClose={closeCart} variant="drawer" />
             ) : (
-              <div className="divide-y divide-silk-100">
-                {items.map((item) => {
-                  const unitPrice =
-                    item.promoPrice &&
-                    item.promoPrice > 0 &&
-                    item.promoPrice < item.price
-                      ? item.promoPrice
-                      : item.price;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="py-4 flex gap-4 items-center group"
-                    >
-                      {/* Miniatura do Produto */}
-                      <div className="relative w-16 h-18 sm:w-18 sm:h-20 rounded-xl overflow-hidden bg-silk-50 flex-shrink-0 border border-silk-200/80">
-                        {!imgErrors[item.id] && item.image ? (
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            onError={() =>
-                              setImgErrors((prev) => ({
-                                ...prev,
-                                [item.id]: true,
-                              }))
-                            }
-                            className="object-cover"
-                            sizes="72px"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-marina-600 bg-marina-50">
-                            <Sparkles className="w-4 h-4" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Informações e Controles */}
-                      <div className="flex-1 min-w-0">
-                        {item.brandName && (
-                          <span className="text-[10px] tracking-widest uppercase text-marina-700 font-bold block mb-0.5 truncate">
-                            {item.brandName}
-                          </span>
-                        )}
-                        <h4 className="text-xs font-medium text-onyx-900 line-clamp-2 leading-snug">
-                          {item.name}
-                        </h4>
-
-                        <div className="flex items-center justify-between mt-3">
-                          {/* Seletor de Quantidade Minimalista */}
-                          <div className="flex items-center border border-silk-200 rounded-lg bg-silk-50/60 p-0.5">
-                            <button
-                              type="button"
-                              onClick={() => updateQuantity(item.id, -1)}
-                              className="w-6 h-6 flex items-center justify-center text-onyx-600 hover:text-onyx-950 rounded hover:bg-white transition-colors cursor-pointer"
-                              aria-label="Diminuir quantidade"
-                            >
-                              <Minus className="w-3 h-3" />
-                            </button>
-                            <span className="w-7 text-center text-xs font-semibold text-onyx-900">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => updateQuantity(item.id, 1)}
-                              className="w-6 h-6 flex items-center justify-center text-onyx-600 hover:text-onyx-900 rounded hover:bg-white transition-colors cursor-pointer"
-                              aria-label="Aumentar quantidade"
-                            >
-                              <Plus className="w-3 h-3" />
-                            </button>
-                          </div>
-
-                          {/* Preço Total do Item */}
-                          <div className="text-right">
-                            <span className="text-xs font-bold text-onyx-950 font-sans">
-                              R$ {(unitPrice * item.quantity).toFixed(2)}
-                            </span>
-                          </div>
-
-                          {/* Botão de Remover */}
-                          <button
-                            type="button"
-                            onClick={() => removeItem(item.id)}
-                            className="text-onyx-400 hover:text-red-600 p-1 transition-colors cursor-pointer"
-                            aria-label="Remover item"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="divide-y divide-silk-200/70">
+                {items.map((item) => (
+                  <CartLineItem
+                    key={item.id}
+                    item={item}
+                    onUpdateQuantity={updateQuantity}
+                    onRemove={removeItem}
+                    onNavigate={closeCart}
+                    variant="drawer"
+                  />
+                ))}
               </div>
             )}
           </div>
 
-          {/* Rodapé com Ações de Finalização */}
+          {/* Rodapé fixo com Safe-Area */}
           {items.length > 0 && (
-            <div className="px-6 py-5 border-t border-silk-200 bg-silk-50/50 space-y-4">
-              {/* Valores e Desconto PIX */}
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between text-onyx-700">
-                  <span>Subtotal</span>
-                  <span className="font-bold text-onyx-950 text-sm">
-                    R$ {subtotal.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-emerald-dark font-medium">
-                  <span>No PIX (5% de desconto)</span>
-                  <span className="font-bold">
-                    R$ {(subtotal * 0.95).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-onyx-500 text-[11px]">
-                  <span>Parcelamento</span>
-                  <span>
-                    Até 10x de R$ {(subtotal / 10).toFixed(2)} sem juros
-                  </span>
-                </div>
-              </div>
-
-              {/* Botões Principais */}
-              <div className="space-y-2.5 pt-1">
-                <Link
-                  href="/checkout"
-                  onClick={() => setIsCartOpen(false)}
-                  className="w-full bg-marina-600 hover:bg-marina-700 text-white font-semibold py-3.5 px-5 rounded-2xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow-marina-md"
-                >
-                  <span>Finalizar Pedido</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={handleWhatsAppCheckout}
-                  className="w-full bg-emerald-whatsapp hover:bg-emerald-dark text-white font-semibold py-3 px-5 rounded-2xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer"
-                >
-                  <MessageCircle className="w-4 h-4 fill-white" />
-                  <span>Comprar pelo WhatsApp</span>
-                </button>
-
-                <Link
-                  href="/carrinho"
-                  onClick={() => setIsCartOpen(false)}
-                  className="w-full block text-center text-xs font-semibold text-onyx-600 hover:text-marina-600 py-1 transition-colors"
-                >
-                  Ver sacola completa
-                </Link>
-              </div>
-            </div>
+            <footer className="px-5 sm:px-6 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-silk-200 bg-silk-50/70 shrink-0">
+              <CartSummary
+                subtotalCents={subtotalCents}
+                pixTotalCents={pixTotalCents}
+                totalItems={totalItems}
+                remainingForFreeShippingCents={remainingForFreeShippingCents}
+                whatsappHref={whatsappHref}
+                onCheckoutClick={closeCart}
+                showFullCartLink
+                onFullCartClick={closeCart}
+              />
+            </footer>
           )}
         </div>
       </div>

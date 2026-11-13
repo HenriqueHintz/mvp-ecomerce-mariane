@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCart } from "@/context/CartContext";
+import { useCartActions } from "@/context/CartContext";
 import { Price } from "@/components/ui";
 import { formatBRL } from "@/lib/pricing";
 import { Check, Eye, MessageCircle, ShoppingBag } from "lucide-react";
@@ -39,7 +39,7 @@ export default function ProductCard({
   imageUrl = "/products/fallback.webp",
   isBestSeller,
 }: ProductCardProps) {
-  const { addItem } = useCart();
+  const { addItem } = useCartActions();
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

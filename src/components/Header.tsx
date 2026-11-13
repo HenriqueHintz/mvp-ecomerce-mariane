@@ -1,15 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useCart } from "@/context/CartContext";
+import dynamic from "next/dynamic";
+import { useCartState, useCartUI } from "@/context/CartContext";
 import Logo from "@/components/Logo";
 import { ShoppingBag, MessageCircle, Menu, X, ChevronRight, MapPin, Truck } from "lucide-react";
-import CartDrawer from "./CartDrawer";
+
+const CartDrawer = dynamic(() => import("./CartDrawer"), { ssr: false });
 
 export default function Header() {
-  const { totalItems, setIsCartOpen } = useCart();
+  const { totalItems } = useCartState();
+  const { isCartOpen, openCart, badgePulseKey } = useCartUI();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasMountedDrawer, setHasMountedDrawer] = useState(false);
+  const [badgePulsing, setBadgePulsing] = useState(false);
+
+  useEffect(() => {
+    if (isCartOpen && !hasMountedDrawer) {
+      setHasMountedDrawer(true);
+    }
+  }, [isCartOpen, hasMountedDrawer]);
+
+  useEffect(() => {
+    if (badgePulseKey === 0) return;
+    setBadgePulsing(true);
+    const t = window.setTimeout(() => setBadgePulsing(false), 300);
+    return () => window.clearTimeout(t);
+  }, [badgePulseKey]);
+
+  const prefetchCartDrawer = () => {
+    void import("./CartDrawer");
+  };
+
+  const handleOpenCart = () => {
+    setHasMountedDrawer(true);
+    openCart();
+  };
 
   const navLinks = [
     { label: "Todos os Produtos", href: "/produtos", isHighlight: true },
@@ -122,13 +149,21 @@ export default function Header() {
 
               {/* Cart Drawer Trigger & Dynamic Counter Badge */}
               <button
-                onClick={() => setIsCartOpen(true)}
+                type="button"
+                data-cart-trigger="true"
+                onClick={handleOpenCart}
+                onMouseEnter={prefetchCartDrawer}
+                onFocus={prefetchCartDrawer}
                 className="relative p-2.5 text-white hover:text-white/80 rounded-full hover:bg-white/10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/40 cursor-pointer"
                 aria-label="Abrir sacola de compras"
               >
                 <ShoppingBag className="w-6 h-6 text-white" />
                 {totalItems > 0 && (
-                  <span className="absolute top-1 right-1 bg-white text-[#7b2cbf] text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#7b2cbf] shadow-sm animate-scaleIn">
+                  <span
+                    className={`absolute top-1 right-1 bg-white text-[#7b2cbf] text-[11px] font-bold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center border-2 border-[#7b2cbf] shadow-sm tabular-nums transition-transform duration-200 motion-reduce:transition-none ${
+                      badgePulsing ? "scale-125" : "scale-100"
+                    }`}
+                  >
                     {totalItems > 99 ? "99+" : totalItems}
                   </span>
                 )}
@@ -242,8 +277,8 @@ export default function Header() {
         )}
       </header>
 
-      {/* Cart Drawer */}
-      <CartDrawer />
+      {/* Cart Drawer (carregado sob demanda no primeiro clique) */}
+      {hasMountedDrawer && <CartDrawer />}
     </>
   );
 }

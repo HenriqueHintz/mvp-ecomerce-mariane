@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { useCart } from "@/context/CartContext";
+import { useCartActions } from "@/context/CartContext";
 import { Product } from "@/db/schema";
 import {
   ShoppingBag,
@@ -29,7 +29,7 @@ export default function ProductDetailClient({
   categoryName,
   imageUrls,
 }: Props) {
-  const { addItem } = useCart();
+  const { addItem } = useCartActions();
   const [selectedImage, setSelectedImage] = useState(imageUrls[0]);
   const [mainImgError, setMainImgError] = useState(false);
   const [thumbErrors, setThumbErrors] = useState<Record<number, boolean>>({});

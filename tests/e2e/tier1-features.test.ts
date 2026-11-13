@@ -171,7 +171,7 @@ describe("Tier 1 - Feature Coverage", () => {
         const headerCode = fs.readFileSync(headerPath, "utf-8");
 
         expect(headerCode).toContain("totalItems", "Header must consume totalItems from CartContext");
-        expect(headerCode).toContain("setIsCartOpen", "Header bag button must toggle setIsCartOpen");
+        expect(headerCode).toContain("openCart", "Header bag button must open cart via openCart");
       },
       { tier: 1, milestone: "M2", authoritativeSource: "PROJECT.md Feature #6" }
     );
@@ -409,7 +409,11 @@ describe("Tier 1 - Feature Coverage", () => {
       "6.2 Cart Drawer displays item details (thumbnail, name, quantity, price)",
       () => {
         const drawerPath = path.join(ROOT_DIR, "src", "components", "CartDrawer.tsx");
-        const drawerCode = fs.readFileSync(drawerPath, "utf-8");
+        const lineItemPath = path.join(ROOT_DIR, "src", "components", "cart", "CartLineItem.tsx");
+        const drawerCode =
+          fs.readFileSync(drawerPath, "utf-8") +
+          "\n" +
+          fs.readFileSync(lineItemPath, "utf-8");
 
         expect(drawerCode).toContain("item.name", "CartDrawer must display item.name");
         expect(drawerCode).toContain("item.quantity", "CartDrawer must display item.quantity");
