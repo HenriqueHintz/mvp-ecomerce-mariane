@@ -8,6 +8,7 @@ import {
 } from "@/lib/admin-auth";
 import { checkRateLimit, extractClientIp } from "@/lib/rate-limit";
 import { createProblemDetailsResponse } from "@/lib/api-errors";
+import { SITE_URL } from "@/lib/site";
 
 export async function POST(request: Request) {
   try {
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
         "Muitas tentativas de login",
         `Limite de tentativas excedido. Aguarde ${rate.retryAfterSeconds} segundos.`,
         {
-          type: "https://marianecosmeticos.com.br/erros/limite-login",
+          type: `${SITE_URL}/erros/limite-login`,
           extra: { retryAfterSeconds: rate.retryAfterSeconds },
         }
       );
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
           "Muitas tentativas de login",
           `Limite global de segurança excedido. Aguarde ${globalFailRate.retryAfterSeconds} segundos.`,
           {
-            type: "https://marianecosmeticos.com.br/erros/limite-login",
+            type: `${SITE_URL}/erros/limite-login`,
             extra: { retryAfterSeconds: globalFailRate.retryAfterSeconds },
           }
         );
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
         "Credenciais inválidas",
         "A senha administrativa informada está incorreta.",
         {
-          type: "https://marianecosmeticos.com.br/erros/credenciais-invalidas",
+          type: `${SITE_URL}/erros/credenciais-invalidas`,
         }
       );
     }

@@ -6,6 +6,7 @@ import { calculateOrderPricing, toCents } from "@/lib/pricing";
 import { createProblemDetailsResponse } from "@/lib/api-errors";
 import { checkRateLimit, extractClientIp } from "@/lib/rate-limit";
 import { COMMERCE_CONFIG } from "@/config/commerce";
+import { SITE_URL } from "@/lib/site";
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
         "Muitas cotações",
         `Limite de cotações por minuto excedido. Aguarde ${rateCheck.retryAfterSeconds} segundos.`,
         {
-          type: "https://marianecosmeticos.com.br/erros/limite-requisicoes",
+          type: `${SITE_URL}/erros/limite-requisicoes`,
           extra: { retryAfterSeconds: rateCheck.retryAfterSeconds },
         }
       );
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
         "Dados de cotação inválidos",
         "A requisição contém dados incompletos ou formatos incorretos.",
         {
-          type: "https://marianecosmeticos.com.br/erros/validacao-cotacao",
+          type: `${SITE_URL}/erros/validacao-cotacao`,
           errors: errorMap,
         }
       );
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
           "Quantidade máxima excedida",
           `Quantidade máxima por item é ${COMMERCE_CONFIG.MAX_QUANTITY_PER_ITEM} unidades.`,
           {
-            type: "https://marianecosmeticos.com.br/erros/validacao-cotacao",
+            type: `${SITE_URL}/erros/validacao-cotacao`,
           }
         );
       }
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
           "Produto não encontrado",
           `O produto '${item.productId}' não foi localizado no catálogo da loja.`,
           {
-            type: "https://marianecosmeticos.com.br/erros/produto-inexistente",
+            type: `${SITE_URL}/erros/produto-inexistente`,
           }
         );
       }
@@ -133,7 +134,7 @@ export async function POST(request: Request) {
       "Erro interno de cotação",
       "Não foi possível calcular os valores da cotação no momento. Tente novamente em instantes.",
       {
-        type: "https://marianecosmeticos.com.br/erros/servidor",
+        type: `${SITE_URL}/erros/servidor`,
       }
     );
   }

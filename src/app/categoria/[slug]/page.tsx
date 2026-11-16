@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db, categories } from "@/db";
 import { eq } from "drizzle-orm";
+import { SITE_URL } from "@/lib/site";
 import ProductCard from "@/components/ProductCard";
 import MobileCatalogControls from "@/components/MobileCatalogControls";
 import {
@@ -67,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${category.name} | Mariane Cosméticos`,
       description: `Curadoria oficial em ${category.name} na Mariane Cosméticos — Rua Blumenau, Nº 623, Lages – SC.`,
-      url: `https://marianecosmeticos.com.br/categoria/${category.slug}`,
+      url: `${SITE_URL}/categoria/${category.slug}`,
       siteName: "Mariane Cosméticos",
       locale: "pt_BR",
       type: "website",

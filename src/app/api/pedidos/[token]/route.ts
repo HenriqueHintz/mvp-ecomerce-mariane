@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getOrderByPublicToken } from "@/lib/orders";
 import { createProblemDetailsResponse } from "@/lib/api-errors";
 import { checkRateLimit, extractClientIp } from "@/lib/rate-limit";
+import { SITE_URL } from "@/lib/site";
 
 export async function GET(
   request: Request,
@@ -16,7 +17,7 @@ export async function GET(
         "Muitas consultas",
         `Limite de consultas excedido. Aguarde ${rate.retryAfterSeconds} segundos.`,
         {
-          type: "https://marianecosmeticos.com.br/erros/limite-requisicoes",
+          type: `${SITE_URL}/erros/limite-requisicoes`,
           extra: { retryAfterSeconds: rate.retryAfterSeconds },
         }
       );
@@ -29,7 +30,7 @@ export async function GET(
         "Token público inválido",
         "O token do pedido informado é inválido.",
         {
-          type: "https://marianecosmeticos.com.br/erros/token-invalido",
+          type: `${SITE_URL}/erros/token-invalido`,
         }
       );
     }
@@ -41,7 +42,7 @@ export async function GET(
         "Pedido não encontrado",
         "Nenhum pedido localizado com o token público informado.",
         {
-          type: "https://marianecosmeticos.com.br/erros/pedido-nao-encontrado",
+          type: `${SITE_URL}/erros/pedido-nao-encontrado`,
         }
       );
     }
@@ -57,7 +58,7 @@ export async function GET(
       "Erro interno do servidor",
       "Não foi possível consultar os dados do pedido no momento.",
       {
-        type: "https://marianecosmeticos.com.br/erros/servidor",
+        type: `${SITE_URL}/erros/servidor`,
       }
     );
   }

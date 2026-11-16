@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createOrderTransaction } from "@/lib/orders";
 import { createProblemDetailsResponse } from "@/lib/api-errors";
 import { checkRateLimit, extractClientIp } from "@/lib/rate-limit";
+import { SITE_URL } from "@/lib/site";
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
         "Muitas requisições",
         `Limite de criação de pedidos excedido. Aguarde ${rateCheck.retryAfterSeconds} segundos antes de tentar novamente.`,
         {
-          type: "https://marianecosmeticos.com.br/erros/limite-requisicoes",
+          type: `${SITE_URL}/erros/limite-requisicoes`,
           extra: { retryAfterSeconds: rateCheck.retryAfterSeconds },
         }
       );
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
         result.title,
         result.errors.join(" "),
         {
-          type: `https://marianecosmeticos.com.br/erros/${result.statusHttp}`,
+          type: `${SITE_URL}/erros/${result.statusHttp}`,
           errors: result.errors,
         }
       );
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
       "Erro interno do servidor",
       "Não foi possível processar o pedido no momento. Tente novamente em instantes.",
       {
-        type: "https://marianecosmeticos.com.br/erros/servidor",
+        type: `${SITE_URL}/erros/servidor`,
       }
     );
   }
@@ -63,7 +64,7 @@ export async function GET() {
     "Consulta descontinuada",
     "A consulta de pedidos por código curto foi descontinuada. Utilize o endpoint seguro por token público: /api/pedidos/[publicToken].",
     {
-      type: "https://marianecosmeticos.com.br/erros/endpoint-descontinuado",
+      type: `${SITE_URL}/erros/endpoint-descontinuado`,
     }
   );
 }

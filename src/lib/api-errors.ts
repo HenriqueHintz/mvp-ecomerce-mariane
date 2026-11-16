@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { SITE_URL } from "./site";
 
 export interface ProblemDetails {
   type: string;
@@ -22,7 +23,7 @@ export function createProblemDetailsResponse(
   }
 ) {
   const problem: ProblemDetails = {
-    type: options?.type || `https://marianecosmeticos.com.br/erros/${status}`,
+    type: options?.type || `${SITE_URL}/erros/${status}`,
     title,
     status,
     detail,

@@ -6,6 +6,7 @@ import { db, products, brands, categories, productImages } from "@/db";
 import { eq, ne, and } from "drizzle-orm";
 import ProductDetailClient from "./ProductDetailClient";
 import ProductCard from "@/components/ProductCard";
+import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 0;
 
@@ -56,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${product.name} | Mariane Cosméticos`,
       description,
-      url: `https://marianecosmeticos.com.br/produto/${product.slug}`,
+      url: `${SITE_URL}/produto/${product.slug}`,
       siteName: "Mariane Cosméticos",
       locale: "pt_BR",
       type: "website",
@@ -164,12 +165,19 @@ export default async function ProductDetailPage({ params }: Props) {
       ? product.promoPrice
       : product.price;
 
+  const absoluteImages = (imageUrls.length > 0 ? imageUrls : ["/products/fallback.webp"]).map((img) =>
+    img.startsWith("http")
+      ? img
+      : `${SITE_URL}${img.startsWith("/") ? "" : "/"}${img}`
+  );
+
   // JSON-LD estruturado (Schema.org Product)
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
+    "@id": `${SITE_URL}/produto/${product.slug}#product`,
     name: product.name,
-    image: imageUrls,
+    image: absoluteImages,
     description:
       product.description ||
       `${product.name} - ${brandName} disponível na Mariane Cosméticos em Lages – SC.`,
@@ -180,16 +188,21 @@ export default async function ProductDetailPage({ params }: Props) {
     },
     offers: {
       "@type": "Offer",
-      url: `https://marianecosmeticos.com.br/produto/${product.slug}`,
-      priceCurrency: "BRL",
+      "@id": `${SITE_URL}/produto/${product.slug}#offer`,
+      url: `${SITE_URL}/produto/${product.slug}`,
+      "priceCurrency": "BRL",
       price: currentPrice.toFixed(2),
+      priceValidUntil: "2027-12-31",
       availability:
         (product.stock ?? 15) > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
       seller: {
         "@type": "Organization",
+        "@id": `${SITE_URL}/#organization`,
         name: "Mariane Cosméticos",
+        url: SITE_URL,
       },
     },
   };
@@ -198,7 +211,7 @@ export default async function ProductDetailPage({ params }: Props) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-14">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, "\\u003c") }}
       />
 
       {/* Breadcrumbs */}

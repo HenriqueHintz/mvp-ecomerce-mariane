@@ -68,12 +68,12 @@ export function test(
 }
 
 // Matchers
-export function expect(actual: any) {
+export function expect(actual: any, defaultMessage?: string) {
   return {
     toBe(expected: any, message?: string) {
       if (actual !== expected) {
         throw new AssertionError(
-          message || `Expected ${JSON.stringify(actual)} to be ${JSON.stringify(expected)}`,
+          message || defaultMessage || `Expected ${JSON.stringify(actual)} to be ${JSON.stringify(expected)}`,
           expected,
           actual
         );

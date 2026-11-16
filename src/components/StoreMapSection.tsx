@@ -108,24 +108,24 @@ export default function StoreMapSection() {
 
             {/* Dados Práticos de Localização com divisórias sutis */}
             <div className="divide-y divide-silk-200/80 border-t border-b border-silk-200/80">
-              {/* Endereço (tocável no mobile para copiar) */}
+              {/* Endereço (com ação de cópia acessível e sem elementos de bloco/heading dentro de button) */}
               <div className="grid grid-cols-[40px_1fr] items-start gap-3.5 py-3.5 sm:py-4">
                 <div className="w-10 h-10 bg-marina-100 text-marina-700 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
                   <MapPin className="w-5 h-5" aria-hidden="true" />
                 </div>
-                <button
-                  type="button"
-                  onClick={handleCopyAddress}
-                  aria-label="Copiar endereço: Rua Blumenau, Nº 623, Lages – SC, CEP 88505-300"
-                  className="min-w-0 text-left group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded"
-                >
+                <div className="min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-xs sm:text-[13px] font-bold tracking-[0.03em] text-onyx-700">
                       Endereço
                     </h3>
-                    <span className="md:hidden text-xs font-medium text-marina-700">
+                    <button
+                      type="button"
+                      onClick={handleCopyAddress}
+                      aria-label="Copiar endereço: Rua Blumenau, Nº 623, Lages – SC, CEP 88505-300"
+                      className="md:hidden text-xs font-medium text-marina-700 cursor-pointer focus-visible:outline-none focus-visible:underline rounded"
+                    >
                       {copied ? "Copiado ✓" : "Toque p/ copiar"}
-                    </span>
+                    </button>
                   </div>
                   <p className="text-[15px] sm:text-base font-semibold text-onyx-950 mt-0.5 leading-snug">
                     Rua Blumenau, Nº 623
@@ -133,7 +133,7 @@ export default function StoreMapSection() {
                   <p className="text-sm text-onyx-700 mt-0.5 leading-snug">
                     Lages – SC &bull; <span className="whitespace-nowrap">CEP 88505-300</span>
                   </p>
-                </button>
+                </div>
               </div>
 
               {/* Horário */}

@@ -5,6 +5,7 @@ import "./tier1-features.test";
 import "./tier2-boundaries.test";
 import "./tier3-combinations.test";
 import "./tier4-scenarios.test";
+import "./tier5-ai-readiness.test";
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -25,8 +26,8 @@ Usage:
   npx tsx tests/e2e/runner.ts [options]
 
 Options:
-  --tier=1|2|3|4         Run only tests belonging to a specific tier
-  --milestone=M1|M2|M3|M4 Run only tests associated with a milestone
+  --tier=1|2|3|4|5       Run only tests belonging to a specific tier
+  --milestone=M1|M2|M3|M4|E2E Run only tests associated with a milestone
   --bail                 Stop execution on first failed test
   --help                 Show this help message
 `);

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useCartActions } from "@/context/CartContext";
 import { Product } from "@/db/schema";
 import { formatBRL } from "@/lib/pricing";
+import { SITE_URL } from "@/lib/site";
 import {
   ShoppingBag,
   MessageCircle,
@@ -72,7 +73,7 @@ export default function ProductDetailClient({
   };
 
   const handleWhatsApp = () => {
-    const msg = `Olá, Mariane Cosméticos! Gostaria de comprar o produto:\n*${product.name}*\nMarca: ${brandName}\nVariação: ${selectedVariation}\nQtd: ${quantity}x\nPreço: R$ ${(currentPrice * quantity).toFixed(2)} (ou R$ ${(parseFloat(pixPrice) * quantity).toFixed(2)} no PIX)\nLink: https://marianecosmeticos.com.br/produto/${product.slug}`;
+    const msg = `Olá, Mariane Cosméticos! Gostaria de comprar o produto:\n*${product.name}*\nMarca: ${brandName}\nVariação: ${selectedVariation}\nQtd: ${quantity}x\nPreço: R$ ${(currentPrice * quantity).toFixed(2)} (ou R$ ${(parseFloat(pixPrice) * quantity).toFixed(2)} no PIX)\nLink: ${SITE_URL}/produto/${product.slug}`;
     window.open(
       `https://wa.me/5549991251617?text=${encodeURIComponent(msg)}`,
       "_blank",

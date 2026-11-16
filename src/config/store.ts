@@ -1,9 +1,11 @@
+import { SITE_URL } from "@/lib/site";
+
 export const STORE_CONFIG = {
   name: "Mariane Cosméticos",
   legalName: "Mariane Cosméticos e Perfumaria Ltda",
   slogan: "Linda é a mulher que bem se quer",
   credential: "Revendedora Oficial Madressenza",
-  domain: "https://marianecosmeticos.com.br",
+  domain: SITE_URL,
   instagram: {
     handle: "@mariane_cosmeticos_01",
     url: "https://www.instagram.com/mariane_cosmeticos_01/",

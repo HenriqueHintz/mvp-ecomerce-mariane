@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MobileFloatingActions from "@/components/MobileFloatingActions";
+import { SITE_URL } from "@/lib/site";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -29,13 +30,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://marianecosmeticos.com.br"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Mariane Cosméticos | Saúde, Beleza & Marcas Profissionais",
+    default:
+      "Mariane Cosméticos — Cosméticos Profissionais e Perfumaria Madressenza em Lages – SC",
     template: "%s | Mariane Cosméticos",
   },
   description:
-    "Linda é a mulher que bem se quer. Cosméticos profissionais, perfumes e produtos de beleza importados e nacionais. Loja física na Rua Blumenau, Nº 623, Lages – SC (CEP: 88505-300).",
+    "Linda é a mulher que bem se quer. Cosméticos profissionais, perfumaria Madressenza oficial e cuidados capilares em Lages – SC. Loja física na Rua Blumenau, Nº 623 (CEP: 88505-300).",
   applicationName: "Mariane Cosméticos",
   keywords: [
     "Mariane Cosméticos",
@@ -75,25 +77,27 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    url: "https://marianecosmeticos.com.br",
+    url: SITE_URL,
     siteName: "Mariane Cosméticos",
-    title: "Mariane Cosméticos | Saúde, Beleza & Marcas Profissionais",
+    title:
+      "Mariane Cosméticos — Cosméticos Profissionais e Perfumaria Madressenza em Lages – SC",
     description:
-      "Linda é a mulher que bem se quer. Cosméticos profissionais, perfumes e produtos de beleza importados e nacionais. Loja física na Rua Blumenau, Nº 623, Lages – SC (CEP: 88505-300).",
+      "Linda é a mulher que bem se quer. Cosméticos profissionais, perfumaria Madressenza oficial e cuidados capilares em Lages – SC. Loja física na Rua Blumenau, Nº 623 (CEP: 88505-300).",
     images: [
       {
         url: "/logo.svg",
         width: 907,
         height: 358,
-        alt: "Mariane Cosméticos — Saúde, Beleza & Marcas Profissionais",
+        alt: "Mariane Cosméticos — Cosméticos Profissionais e Perfumaria Madressenza em Lages – SC",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mariane Cosméticos | Saúde, Beleza & Marcas Profissionais",
+    title:
+      "Mariane Cosméticos — Cosméticos Profissionais e Perfumaria Madressenza em Lages – SC",
     description:
-      "Linda é a mulher que bem se quer. Cosméticos profissionais, perfumes e produtos de beleza importados e nacionais. Loja física na Rua Blumenau, Nº 623, Lages – SC (CEP: 88505-300).",
+      "Linda é a mulher que bem se quer. Cosméticos profissionais, perfumaria Madressenza oficial e cuidados capilares em Lages – SC. Loja física na Rua Blumenau, Nº 623 (CEP: 88505-300).",
     images: ["/logo.svg"],
     creator: "@mariane_cosmeticos_01",
   },

@@ -139,8 +139,9 @@ export default function Footer() {
                 <ChevronDown className="w-4 h-4 text-white/80 transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
               <ul className="pb-3 space-y-2 text-sm text-white/85">
+                <li><Link href="/sobre" className="block py-1 hover:text-white">Sobre a Loja</Link></li>
+                <li><Link href="/atendimento" className="block py-1 hover:text-white">Central de Atendimento</Link></li>
                 <li><Link href="/carrinho" className="block py-1 hover:text-white">Minha Sacola</Link></li>
-                <li><Link href="/atendimento" className="block py-1 hover:text-white">Fale Conosco</Link></li>
                 <li><Link href="/politica-de-privacidade" className="block py-1 hover:text-white">Política de Privacidade</Link></li>
                 <li><Link href="/trocas-e-devolucoes" className="block py-1 hover:text-white">Trocas &amp; Devoluções</Link></li>
               </ul>
@@ -149,7 +150,7 @@ export default function Footer() {
 
           {/* Desktop Coluna 2: Categorias */}
           <div className="hidden md:block space-y-2.5">
-            <h4 className="font-bold tracking-wider uppercase text-white text-xs">Categorias</h4>
+            <h3 className="font-bold tracking-wider uppercase text-white text-xs">Categorias</h3>
             <ul className="space-y-1.5 text-white/75">
               <li><Link href="/categoria/tratamento-mascaras" className="hover:text-white transition-colors">Tratamento & Máscaras</Link></li>
               <li><Link href="/categoria/cronograma-capilar" className="hover:text-white transition-colors">Cronograma Capilar</Link></li>
@@ -162,7 +163,7 @@ export default function Footer() {
 
           {/* Desktop Coluna 3: Marcas Oficiais */}
           <div className="hidden md:block space-y-2.5">
-            <h4 className="font-bold tracking-wider uppercase text-white text-xs">Marcas Oficiais</h4>
+            <h3 className="font-bold tracking-wider uppercase text-white text-xs">Marcas Oficiais</h3>
             <ul className="space-y-1.5 text-white/75">
               <li><Link href="/produtos?marca=madressenza" className="hover:text-white transition-colors font-semibold text-white">Madressenza (Revendedora Oficial)</Link></li>
               <li><Link href="/produtos?marca=wella-profissional" className="hover:text-white transition-colors">Wella Profissional</Link></li>
@@ -176,10 +177,11 @@ export default function Footer() {
 
           {/* Desktop Coluna 4: Ajuda & Segurança */}
           <div className="hidden md:block space-y-2.5">
-            <h4 className="font-bold tracking-wider uppercase text-white text-xs">Ajuda & Segurança</h4>
+            <h3 className="font-bold tracking-wider uppercase text-white text-xs">Ajuda & Segurança</h3>
             <ul className="space-y-1.5 text-white/75">
+              <li><Link href="/sobre" className="hover:text-white transition-colors">Sobre a Loja</Link></li>
+              <li><Link href="/atendimento" className="hover:text-white transition-colors">Central de Atendimento</Link></li>
               <li><Link href="/carrinho" className="hover:text-white transition-colors">Minha Sacola</Link></li>
-              <li><Link href="/atendimento" className="hover:text-white transition-colors">Fale Conosco</Link></li>
               <li><Link href="/politica-de-privacidade" className="hover:text-white transition-colors">Política de Privacidade</Link></li>
               <li><Link href="/trocas-e-devolucoes" className="hover:text-white transition-colors">Trocas & Devoluções</Link></li>
             </ul>
