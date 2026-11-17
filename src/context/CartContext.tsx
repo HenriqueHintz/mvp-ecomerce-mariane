@@ -164,6 +164,7 @@ function cartReducer(state: CartReducerState, action: CartAction): CartReducerSt
 
 export interface CartStateContextType {
   items: CartItem[];
+  isHydrated: boolean;
   subtotal: number;
   subtotalCents: number;
   pixTotalCents: number;
@@ -450,6 +451,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const stateValue = useMemo<CartStateContextType>(
     () => ({
       items: state.items,
+      isHydrated: mounted,
       subtotal,
       subtotalCents,
       pixTotalCents,
@@ -463,6 +465,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       state.items,
+      mounted,
       state.lastRemoved,
       subtotal,
       subtotalCents,

@@ -42,6 +42,7 @@ async function runAdversarialSuite() {
     const tamperRes = await createOrderTransaction({
       customerName: "Cliente Teste Integridade",
       customerPhone: "49991251617",
+      customerEmail: "cliente.integridade@teste.com",
       deliveryMode: "entrega",
       cep: "88505300",
       address: "Rua Blumenau, 623",
@@ -140,6 +141,7 @@ async function runAdversarialSuite() {
       const spoofedReplay = await createOrderTransaction({
         customerName: "Atacante Tentando Colisão",
         customerPhone: "11988887777",
+        customerEmail: "atacante@teste.com",
         deliveryMode: "entrega",
         cep: "88505300",
         address: "Rua Blumenau, 623",
@@ -168,6 +170,7 @@ async function runAdversarialSuite() {
     const pixOrderRes = await createOrderTransaction({
       customerName: "Cliente PIX Desconto",
       customerPhone: "49991251617",
+      customerEmail: "cliente.pix@teste.com",
       deliveryMode: "retirada",
       paymentMethod: "pix",
       idempotencyKey: crypto.randomUUID(),
@@ -208,6 +211,7 @@ async function runAdversarialSuite() {
         createOrderTransaction({
           customerName: `Comprador Concorrente ${i + 1}`,
           customerPhone: "49991251617",
+          customerEmail: `concorrente${i + 1}@teste.com`,
           deliveryMode: "retirada",
           paymentMethod: "whatsapp",
           idempotencyKey: crypto.randomUUID(),

@@ -140,6 +140,7 @@ async function runArchitecturalRisksAndFrontendTests() {
       createOrderTransaction({
         customerName: "Cliente Concorrente A",
         customerPhone: "49991251617",
+        customerEmail: "concorrentea@teste.com",
         deliveryMode: "retirada",
         paymentMethod: "pix",
         marketingConsent: false,
@@ -150,6 +151,7 @@ async function runArchitecturalRisksAndFrontendTests() {
       createOrderTransaction({
         customerName: "Cliente Concorrente B",
         customerPhone: "49991251618",
+        customerEmail: "concorrenteb@teste.com",
         deliveryMode: "retirada",
         paymentMethod: "pix",
         marketingConsent: false,

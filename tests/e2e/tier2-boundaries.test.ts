@@ -355,6 +355,7 @@ describe("Tier 2 - Boundary & Corner Cases", () => {
         const coalescedRes = validateOrderInput({
           customerName: "Maria Silva",
           customerPhone: "49991251617",
+          customerEmail: "maria.silva@exemplo.com.br",
           deliveryMode: "retirada",
           paymentMethod: "pix",
           items: [

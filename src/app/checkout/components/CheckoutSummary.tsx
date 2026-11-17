@@ -19,6 +19,8 @@ interface CheckoutSummaryProps {
     quantity: number;
     price: number;
   }>;
+  showSubmitButton?: boolean;
+  canSubmit?: boolean;
 }
 
 export function CheckoutSummary({
@@ -28,6 +30,8 @@ export function CheckoutSummary({
   onSubmit,
   deliveryMode,
   cartItems,
+  showSubmitButton = true,
+  canSubmit = true,
 }: CheckoutSummaryProps) {
   const subtotalCents = quote?.subtotalCents || 0;
   const shippingCents = quote?.shippingCents || 0;
@@ -76,7 +80,7 @@ export function CheckoutSummary({
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-onyx-900 truncate">{item.name}</p>
-              <p className="text-onyx-500 mt-0.5 tabular-nums">
+              <p className="text-onyx-600 mt-0.5 tabular-nums">
                 Qtd: {item.quantity} un.
               </p>
             </div>
@@ -105,7 +109,7 @@ export function CheckoutSummary({
 
         <div className="flex justify-between text-onyx-700">
           <span className="flex items-center">
-            <Truck aria-hidden="true" className="w-3.5 h-3.5 mr-1 text-onyx-500" />
+            <Truck aria-hidden="true" className="w-3.5 h-3.5 mr-1 text-onyx-600" />
             Frete
           </span>
           <span className="font-medium">
@@ -138,7 +142,7 @@ export function CheckoutSummary({
               )}
             </span>
             {totalCents > 0 && (
-              <p className="text-[11px] text-onyx-500 mt-0.5 tabular-nums">
+              <p className="text-[11px] text-onyx-600 mt-0.5 tabular-nums">
                 ou até {installmentsCount}x de {formatBrl(installmentValueCents)} sem juros
               </p>
             )}
@@ -147,26 +151,28 @@ export function CheckoutSummary({
       </div>
 
       {/* Botão de Finalização */}
-      <button
-        type="button"
-        onClick={onSubmit}
-        disabled={submitting || loadingQuote || cartItems.length === 0}
-        className="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-brand hover:bg-brand-dark active:scale-[0.99] text-white font-bold text-sm tracking-wide shadow-luxury transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-      >
-        {submitting ? (
-          <>
-            <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
-            <span>Processando Pedido...</span>
-          </>
-        ) : (
-          <>
-            <Lock aria-hidden="true" className="w-4 h-4" />
-            <span>Concluir Pedido com Segurança</span>
-          </>
-        )}
-      </button>
+      {showSubmitButton && (
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={!canSubmit || submitting || loadingQuote || cartItems.length === 0}
+          className="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-brand hover:bg-brand-dark active:scale-[0.99] text-white font-bold text-sm tracking-wide shadow-luxury transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+        >
+          {submitting ? (
+            <>
+              <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
+              <span>Processando Pedido...</span>
+            </>
+          ) : (
+            <>
+              <Lock aria-hidden="true" className="w-4 h-4" />
+              <span>Confirmar pedido</span>
+            </>
+          )}
+        </button>
+      )}
 
-      <div className="flex items-center justify-center space-x-1.5 text-[11px] text-onyx-500 pt-1">
+      <div className="flex items-center justify-center space-x-1.5 text-[11px] text-onyx-600 pt-1">
         <ShieldCheck aria-hidden="true" className="w-3.5 h-3.5 text-emerald-600" />
         <span>Garantia de atendimento e sigilo Mariane Cosméticos</span>
       </div>

@@ -111,7 +111,11 @@ export default function MobileFloatingActions() {
     return () => io.disconnect();
   }, [pathname]);
 
-  const hidden = !pastHero || isCartOpen || overlayOpen;
+  const hidden = pathname?.startsWith("/checkout") || !pastHero || isCartOpen || overlayOpen;
+
+  if (pathname?.startsWith("/checkout")) {
+    return null;
+  }
 
   return (
     <div

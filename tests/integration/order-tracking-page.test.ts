@@ -47,6 +47,7 @@ async function runTrackingAndLgpdTests() {
     const res = await createOrderTransaction({
       customerName: "Mariana Silveira",
       customerPhone: "49991251617",
+      customerEmail: "mariana.silveira@teste.com",
       deliveryMode: "retirada",
       paymentMethod: "pix",
       items: [{ productId: testProdId, quantity: 2 }],

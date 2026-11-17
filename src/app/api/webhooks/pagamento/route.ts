@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { handlePaymentWebhook } from "@/lib/payments";
+import { sendPaymentConfirmedEmail } from "@/lib/order-emails";
 
 export async function POST(request: Request) {
   try {
@@ -14,6 +15,16 @@ export async function POST(request: Request) {
       signatureHeader,
       accessTokenHeader,
     });
+
+    if (
+      result.statusHttp === 200 &&
+      "paymentConfirmedTransition" in result &&
+      result.paymentConfirmedTransition &&
+      "orderId" in result.body &&
+      typeof result.body.orderId === "string"
+    ) {
+      await sendPaymentConfirmedEmail(result.body.orderId);
+    }
 
     return NextResponse.json(result.body, { status: result.statusHttp });
   } catch {

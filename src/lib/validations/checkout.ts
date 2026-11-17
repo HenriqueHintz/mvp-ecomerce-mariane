@@ -42,13 +42,12 @@ export const createOrderSchema = z
         message: "Informe um telefone/WhatsApp válido com DDD (ex: 49 99125-1617)",
       }),
     customerEmail: z
-      .string()
+      .string({ error: "Informe um endereço de e-mail válido" })
       .trim()
+      .min(1, "Informe um endereço de e-mail válido")
       .email("Informe um endereço de e-mail válido")
-      .max(160)
-      .optional()
-      .or(z.literal(""))
-      .transform((val) => (val ? val.trim() : null)),
+      .max(160, "E-mail muito longo")
+      .transform((val) => val.trim().toLowerCase()),
 
     // LGPD - Consentimento opcional de marketing (sempre desmarcado por default)
     marketingConsent: z.boolean().default(false),

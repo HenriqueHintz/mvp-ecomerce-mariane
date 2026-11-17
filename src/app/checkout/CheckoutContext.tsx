@@ -15,6 +15,8 @@ export interface CheckoutState {
   deliveryMode: "entrega" | "retirada";
   cep: string;
   address: string;
+  addressNumber?: string;
+  addressComplement?: string;
   city: string;
   notes: string;
   paymentMethod: "whatsapp" | "pix" | "cartao";
@@ -29,6 +31,8 @@ export interface CheckoutActions {
   setDeliveryMode: (m: "entrega" | "retirada") => void;
   setCep: (v: string) => void;
   setAddress: (v: string) => void;
+  setAddressNumber?: (v: string) => void;
+  setAddressComplement?: (v: string) => void;
   setCity: (v: string) => void;
   setNotes: (v: string) => void;
   setPaymentMethod: (m: "whatsapp" | "pix" | "cartao") => void;

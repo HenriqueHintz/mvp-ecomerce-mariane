@@ -664,7 +664,7 @@ export async function changeOrderStatus(
         : (rawStatus as OrderStatus);
 
     if (currentStatus === newStatus) {
-      return { success: true, status: currentStatus };
+      return { success: true, status: currentStatus, changed: false };
     }
 
     // Validar transição na máquina de estados
@@ -706,7 +706,7 @@ export async function changeOrderStatus(
       createdAt: new Date().toISOString(),
     });
 
-    return { success: true, status: newStatus };
+    return { success: true, status: newStatus, changed: true };
   })
   );
 }

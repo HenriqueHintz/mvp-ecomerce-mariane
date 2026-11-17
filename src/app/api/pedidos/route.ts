@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { createOrderTransaction } from "@/lib/orders";
+import { sendOrderReceivedEmail } from "@/lib/order-emails";
 import { createProblemDetailsResponse } from "@/lib/api-errors";
 import { checkRateLimit, extractClientIp } from "@/lib/rate-limit";
+import {
+  EMAIL_VERIFICATION_COOKIE_NAME,
+  extractCookieFromRequest,
+  verifyVerifiedEmailToken,
+} from "@/lib/email-verification";
 import { SITE_URL } from "@/lib/site";
 
 export async function POST(request: Request) {
@@ -22,6 +28,31 @@ export async function POST(request: Request) {
     }
 
     const body: unknown = await request.json();
+
+    const bodyEmail =
+      body &&
+      typeof body === "object" &&
+      !Array.isArray(body) &&
+      typeof (body as { customerEmail?: unknown }).customerEmail === "string"
+        ? (body as { customerEmail: string }).customerEmail
+        : "";
+
+    const emailToken = extractCookieFromRequest(
+      request,
+      EMAIL_VERIFICATION_COOKIE_NAME
+    );
+
+    if (!bodyEmail.trim() || !verifyVerifiedEmailToken(emailToken, bodyEmail)) {
+      return createProblemDetailsResponse(
+        403,
+        "E-mail não verificado",
+        "Confirme seu e-mail para finalizar o pedido.",
+        {
+          type: `${SITE_URL}/erros/email-nao-verificado`,
+        }
+      );
+    }
+
     const result = await createOrderTransaction(body);
 
     if (!result.success) {
@@ -36,7 +67,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: true,
         idempotent: result.idempotent,
@@ -44,6 +75,23 @@ export async function POST(request: Request) {
       },
       { status: result.statusHttp }
     );
+
+    // Após criar o pedido com sucesso, invalida o token de verificação de e-mail e envia resumo transacional
+    if (result.statusHttp === 201) {
+      response.cookies.set({
+        name: EMAIL_VERIFICATION_COOKIE_NAME,
+        value: "",
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 0,
+      });
+
+      await sendOrderReceivedEmail(result.order.id);
+    }
+
+    return response;
   } catch (error) {
     console.error("Erro não tratado ao registrar pedido:", error);
     return createProblemDetailsResponse(

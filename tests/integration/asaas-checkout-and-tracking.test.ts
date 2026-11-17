@@ -121,6 +121,7 @@ async function runAsaasCheckoutAndTrackingTests() {
     const orderPix = await createOrderTransaction({
       customerName: "Fernanda Costa",
       customerPhone: "49991251617",
+      customerEmail: "fernanda.costa@teste.com",
       deliveryMode: "retirada",
       paymentMethod: "pix",
       marketingConsent: false,
@@ -169,6 +170,7 @@ async function runAsaasCheckoutAndTrackingTests() {
     const orderCard = await createOrderTransaction({
       customerName: "Juliana Ribeiro",
       customerPhone: "49991251617",
+      customerEmail: "juliana.ribeiro@teste.com",
       deliveryMode: "retirada",
       paymentMethod: "cartao",
       marketingConsent: false,

@@ -94,6 +94,7 @@ async function runIntegrationTests() {
     const resIdem = await createOrderTransaction({
       customerName: "Camila Rodrigues",
       customerPhone: "49991251617",
+      customerEmail: "camila@teste.com",
       deliveryMode: "entrega",
       cep: "88505300",
       address: "Rua Blumenau, 999, Apto 402",
@@ -122,6 +123,7 @@ async function runIntegrationTests() {
     const resOutOfStock = await createOrderTransaction({
       customerName: "Lucas Comprador",
       customerPhone: "49991251617",
+      customerEmail: "lucas@teste.com",
       deliveryMode: "retirada",
       paymentMethod: "whatsapp",
       items: [{ productId: testProdId, quantity: 10 }], // Pedindo 10, só tem 3
@@ -150,6 +152,7 @@ async function runIntegrationTests() {
       createOrderTransaction({
         customerName: `Cliente Concorrente ${idx + 1}`,
         customerPhone: "49991251617",
+        customerEmail: `concorrente${idx + 1}@teste.com`,
         deliveryMode: "retirada",
         paymentMethod: "whatsapp",
         items: [{ productId: testProdId, quantity: 1 }],

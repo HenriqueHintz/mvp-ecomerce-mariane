@@ -22,6 +22,10 @@ import { COMMERCE_CONFIG } from "../../src/config/commerce";
 import { POST as postCotacaoRoute } from "../../src/app/api/checkout/cotacao/route";
 import { POST as postPedidosRoute } from "../../src/app/api/pedidos/route";
 import { GET as getPedidoByTokenRoute } from "../../src/app/api/pedidos/[token]/route";
+import {
+  EMAIL_VERIFICATION_COOKIE_NAME,
+  createVerifiedEmailToken,
+} from "../../src/lib/email-verification";
 import { CheckoutContact } from "../../src/app/checkout/components/CheckoutContact";
 import { CheckoutDelivery } from "../../src/app/checkout/components/CheckoutDelivery";
 import { CheckoutSummary } from "../../src/app/checkout/components/CheckoutSummary";
@@ -138,16 +142,19 @@ async function runCheckoutE2eJourneysTests() {
         `[${vp.name}] Campos de contato devem ter labels semânticos associados e aria-required`
       );
 
+      const customerEmail = `mariaclara.${vp.name}@teste.com.br`;
+      const verifiedCookie = `${EMAIL_VERIFICATION_COOKIE_NAME}=${createVerifiedEmailToken(customerEmail)}`;
       const postReq = new Request("http://localhost:3001/api/pedidos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cookie": verifiedCookie,
           "x-forwarded-for": `10.10.1.${vp.isMobile ? 11 : 12}`,
         },
         body: JSON.stringify({
           customerName: `Maria Clara ${vp.name.toUpperCase()}`,
           customerPhone: "(49) 99125-1617",
-          customerEmail: `mariaclara.${vp.name}@teste.com.br`,
+          customerEmail,
           deliveryMode: "entrega",
           cep: "88505-300",
           address: "Rua Blumenau, 623, Bairro São Cristóvão",
@@ -520,6 +527,7 @@ async function runCheckoutE2eJourneysTests() {
       const manualOrderRes = await createOrderTransaction({
         customerName: `Cliente Fallback CEP ${vp.name}`,
         customerPhone: "(49) 99125-1617",
+        customerEmail: `fallback.${vp.name}@teste.com.br`,
         deliveryMode: "entrega",
         cep: "99999999",
         address: "Rua Preenchida Manualmente Após Timeout ViaCEP, 450",
@@ -555,9 +563,12 @@ async function runCheckoutE2eJourneysTests() {
       const stockBefore = stockBeforeRows[0].stock;
 
       const sharedIdempotencyKey = crypto.randomUUID();
+      const doubleClickEmail = `duplo.${vp.name}@teste.com.br`;
+      const doubleClickCookie = `${EMAIL_VERIFICATION_COOKIE_NAME}=${createVerifiedEmailToken(doubleClickEmail)}`;
       const payload = {
         customerName: `Cliente Duplo Clique ${vp.name}`,
         customerPhone: "(49) 99125-1617",
+        customerEmail: doubleClickEmail,
         deliveryMode: "retirada" as const,
         paymentMethod: "whatsapp" as const,
         marketingConsent: false,
@@ -572,6 +583,7 @@ async function runCheckoutE2eJourneysTests() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Cookie": doubleClickCookie,
               "x-forwarded-for": `10.40.${vp.isMobile ? 1 : 2}.10`,
             },
             body: JSON.stringify(payload),
@@ -582,6 +594,7 @@ async function runCheckoutE2eJourneysTests() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Cookie": doubleClickCookie,
               "x-forwarded-for": `10.40.${vp.isMobile ? 1 : 2}.11`,
             },
             body: JSON.stringify(payload),
@@ -684,16 +697,20 @@ async function runCheckoutE2eJourneysTests() {
         .where(eq(products.id, prodSingleStockId));
 
       const oosIdempotencyKey = crypto.randomUUID();
+      const oosEmail = `esgotado.${vp.name}@teste.com.br`;
+      const oosCookie = `${EMAIL_VERIFICATION_COOKIE_NAME}=${createVerifiedEmailToken(oosEmail)}`;
       const oosRes = await postPedidosRoute(
         new Request("http://localhost:3001/api/pedidos", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Cookie": oosCookie,
             "x-forwarded-for": `10.50.${vp.isMobile ? 1 : 2}.99`,
           },
           body: JSON.stringify({
             customerName: `Cliente Produto Esgotado ${vp.name}`,
             customerPhone: "(49) 99125-1617",
+            customerEmail: oosEmail,
             deliveryMode: "retirada",
             paymentMethod: "whatsapp",
             marketingConsent: false,

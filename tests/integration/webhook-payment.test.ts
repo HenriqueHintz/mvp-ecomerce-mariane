@@ -32,6 +32,7 @@ async function runWebhookTests() {
     const orderRes = await createOrderTransaction({
       customerName: "Beatriz Pagadora",
       customerPhone: "49991251617",
+      customerEmail: "beatriz.pagadora@teste.com",
       deliveryMode: "retirada",
       paymentMethod: "pix",
       items: [{ productId: testProdId, quantity: 1 }],
@@ -139,6 +140,7 @@ async function runWebhookTests() {
     const expOrderRes = await createOrderTransaction({
       customerName: "Cliente Expirada",
       customerPhone: "49991251617",
+      customerEmail: "cliente.expirada@teste.com",
       deliveryMode: "retirada",
       paymentMethod: "pix",
       items: [{ productId: testProdId, quantity: 1 }],

@@ -6,6 +6,9 @@ import "./tier2-boundaries.test";
 import "./tier3-combinations.test";
 import "./tier4-scenarios.test";
 import "./tier5-ai-readiness.test";
+import "./tier6-email-otp.test";
+import "./tier7-checkout-wizard.test";
+import "./tier8-transactional-emails.test";
 
 // Parse command line arguments
 const args = process.argv.slice(2);

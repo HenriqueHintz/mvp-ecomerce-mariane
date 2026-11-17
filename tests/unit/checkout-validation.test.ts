@@ -37,6 +37,7 @@ if (parsed1.data.cep !== "88505300") {
 const validPickupPayload = {
   customerName: "Ana Paula",
   customerPhone: "49988776655",
+  customerEmail: "anapaula@exemplo.com.br",
   deliveryMode: "retirada",
   paymentMethod: "whatsapp",
   items: [{ productId: "p2", quantity: 1 }],
@@ -46,6 +47,19 @@ const validPickupPayload = {
 const parsed2 = createOrderSchema.safeParse(validPickupPayload);
 if (!parsed2.success) {
   throw new Error(`Payload válido com retirada falhou: ${JSON.stringify(parsed2.error.format())}`);
+}
+
+// 2b. E-mail obrigatório (ausente ou vazio deve ser rejeitado)
+const missingEmailPayload = {
+  customerName: "Ana Paula",
+  customerPhone: "49988776655",
+  deliveryMode: "retirada",
+  paymentMethod: "whatsapp",
+  items: [{ productId: "p2", quantity: 1 }],
+  idempotencyKey: "123e4567-e89b-12d3-a456-426614174002",
+};
+if (createOrderSchema.safeParse(missingEmailPayload).success) {
+  throw new Error("Payload sem customerEmail DEVE ser rejeitado!");
 }
 
 // 3. Validação de Honeypot (Bot Trapping)

@@ -70,6 +70,10 @@ Copie o arquivo [`.env.example`](file:///c:/Projetos/Mariane%20Cosmeticos/.env.e
 | `PAYMENT_SANDBOX_ENABLED` | Opcional | Flag booleana (`"true"` ou `"false"`) para ativação do modo Sandbox local. |
 | `NEXT_PUBLIC_ENABLE_PIX` | Opcional | Exibe a opção de pagamento PIX no checkout quando `"true"` e acompanhada de `ASAAS_API_KEY`. |
 | `NEXT_PUBLIC_ENABLE_CARD` | Opcional | Exibe a opção de cartão de crédito no checkout quando `"true"` e acompanhada de `ASAAS_API_KEY`. |
+| `BREVO_API_KEY` | Sim em produção (OTP checkout) | Chave da API transacional HTTP do Brevo (`/v3/smtp/email`) para envio do código de verificação no checkout. |
+| `EMAIL_FROM` | Sim em produção (OTP checkout) | Endereço remetente verificado (Single Sender) no Brevo. |
+| `EMAIL_FROM_NAME` | Opcional | Nome de exibição do remetente (`"Mariane Cosméticos"`). |
+| `CHECKOUT_SECRET` | Sim em produção (OTP checkout) | Segredo HMAC-SHA256 para assinar tokens/cookies de verificação de e-mail e hashes de OTP/IP. |
 | `NEXT_PUBLIC_SITE_URL` | Opcional | Domínio canônico da loja (padrão MVP: `https://mvp-ecomerce-mariane-ne8c.vercel.app`; ao ativar o domínio próprio, definir `NEXT_PUBLIC_SITE_URL` na Vercel e configurar redirect 308 de `vercel.app` para o novo domínio). |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Opcional | Número oficial do WhatsApp da loja (`5549991251617`). |
 

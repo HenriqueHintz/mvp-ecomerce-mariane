@@ -137,6 +137,26 @@ export const paymentWebhooks = sqliteTable("payment_webhooks", {
   processedAt: text("processed_at").notNull(),
 });
 
+export const emailVerifications = sqliteTable(
+  "email_verifications",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull(),
+    codeHash: text("code_hash").notNull(),
+    expiresAt: text("expires_at").notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    sentCount: integer("sent_count").notNull().default(1),
+    lastSentAt: text("last_sent_at").notNull(),
+    verifiedAt: text("verified_at"),
+    ipHash: text("ip_hash").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => ({
+    emailIdx: index("idx_email_verifications_email").on(table.email),
+    createdAtIdx: index("idx_email_verifications_created_at").on(table.createdAt),
+  })
+);
+
 export type Brand = typeof brands.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Product = typeof products.$inferSelect;
@@ -145,3 +165,4 @@ export type Order = typeof orders.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect;
 export type PaymentWebhook = typeof paymentWebhooks.$inferSelect;
+export type EmailVerification = typeof emailVerifications.$inferSelect;

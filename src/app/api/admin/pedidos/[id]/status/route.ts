@@ -6,6 +6,7 @@ import {
   verifyAdminCsrfOrigin,
 } from "@/lib/admin-auth";
 import { changeOrderStatus } from "@/lib/orders";
+import { sendOrderStatusChangedEmail } from "@/lib/order-emails";
 import {
   OrderStatus,
   InvalidStatusTransitionError,
@@ -62,6 +63,13 @@ export async function PATCH(
       "admin",
       notes || "Atualizado manualmente no painel da loja"
     );
+
+    if (updated.changed) {
+      await sendOrderStatusChangedEmail({
+        orderId: id,
+        newStatus: updated.status,
+      });
+    }
 
     return NextResponse.json({
       success: true,

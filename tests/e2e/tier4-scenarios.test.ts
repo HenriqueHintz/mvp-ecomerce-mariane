@@ -260,6 +260,7 @@ describe("Tier 4 - Real-World Application Scenarios", () => {
       const order = await createOrderInDb({
         customerName: "Juliana Costa",
         customerPhone: "(49) 99988-7766",
+        customerEmail: "juliana.costa@teste.com.br",
         deliveryMode: "retirada",
         paymentMethod: "pix",
         items: [{ productId: sampleProd[0].id, quantity: 1 }],
@@ -382,6 +383,7 @@ describe("Tier 4 - Real-World Application Scenarios", () => {
       const order = await createOrderInDb({
         customerName: "Camila Andrade",
         customerPhone: "(49) 99111-2233",
+        customerEmail: "camila.andrade@teste.com.br",
         deliveryMode: "retirada",
         paymentMethod: "pix",
         items: [{ productId: sampleProd[0].id, quantity: 1 }],

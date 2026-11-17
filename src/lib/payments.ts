@@ -694,6 +694,7 @@ export async function handlePaymentWebhook(params: {
       });
 
       // 7. Atualização condicional de status e estorno único de estoque
+      let paymentConfirmedTransition = false;
       if (newOrderStatus !== currentStatusRaw) {
         const updateRes = await tx
           .update(orders)
@@ -701,6 +702,20 @@ export async function handlePaymentWebhook(params: {
           .where(and(eq(orders.id, orderId), eq(orders.status, currentStatusRaw)));
 
         if (updateRes.rowsAffected > 0) {
+          if (newOrderStatus === "pago") {
+            const priorPaidHistory = await tx
+              .select({ id: orderStatusHistory.id })
+              .from(orderStatusHistory)
+              .where(
+                and(
+                  eq(orderStatusHistory.orderId, orderId),
+                  eq(orderStatusHistory.toStatus, "pago")
+                )
+              )
+              .limit(1);
+            paymentConfirmedTransition = priorPaidHistory.length === 0;
+          }
+
           if (shouldRestoreStock) {
             const itemsToRestore = await tx
               .select()
@@ -739,6 +754,7 @@ export async function handlePaymentWebhook(params: {
 
       return {
         statusHttp: 200,
+        paymentConfirmedTransition,
         body: {
           success: true,
           idempotentReplay: false,
