@@ -80,13 +80,13 @@ async function runAdversarialSuite() {
       );
       assert.strictEqual(
         tamperRes.order.shippingCents,
-        2290,
-        "Entrega abaixo de R$ 199,00 deve cobrar frete fixo oficial (2290 centavos)"
+        990,
+        "Entrega em Lages (88505300) abaixo de R$ 199,00 deve cobrar frete oficial de R$ 9,90 (990 centavos)"
       );
       assert.strictEqual(
         tamperRes.order.totalCents,
-        17290,
-        "Total deve ser exatamente 15000 + 2290 = 17290 centavos"
+        15990,
+        "Total deve ser exatamente 15000 + 990 = 15990 centavos"
       );
       assert.strictEqual(
         tamperRes.order.status,

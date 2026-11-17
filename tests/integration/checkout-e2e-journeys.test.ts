@@ -389,6 +389,7 @@ async function runCheckoutE2eJourneysTests() {
           body: JSON.stringify({
             deliveryMode: "entrega",
             paymentMethod: "whatsapp",
+            cep: "80010-000",
             items: [{ productId: prodBelow199Id, quantity: 1 }],
           }),
         })
@@ -405,7 +406,7 @@ async function runCheckoutE2eJourneysTests() {
       assert.strictEqual(
         quoteDeliveryUnderData.quote.shippingCents,
         COMMERCE_CONFIG.SHIPPING_FIXED_CENTS,
-        `[${vp.name}] Entrega abaixo de R$ 199,00 deve cobrar R$ 22,90 (2290 centavos)`
+        `[${vp.name}] Entrega Sul (80010-000) abaixo de R$ 199,00 deve cobrar R$ 22,90 (2290 centavos)`
       );
       assert.strictEqual(quoteDeliveryUnderData.quote.totalCents, 14290);
 
@@ -414,6 +415,7 @@ async function runCheckoutE2eJourneysTests() {
           quote: calculateOrderPricing({
             deliveryMode: "entrega",
             paymentMethod: "whatsapp",
+            cep: "80010-000",
             items: [
               {
                 productId: prodBelow199Id,

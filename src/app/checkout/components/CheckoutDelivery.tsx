@@ -4,6 +4,7 @@ import React, { useCallback } from "react";
 import { STORE_CONFIG } from "@/config/store";
 import { COMMERCE_CONFIG } from "@/config/commerce";
 import { formatBrl, OrderPricingSummary } from "@/lib/pricing";
+import { getShippingZone, normalizeCep } from "@/lib/shipping";
 import Button from "@/components/ui/Button";
 import {
   MapPin,
@@ -39,6 +40,7 @@ interface CheckoutDeliveryProps {
   onBlurField?: (field: "cep" | "address" | "city") => void;
   quote?: OrderPricingSummary | null;
   loadingQuote?: boolean;
+  debouncingCep?: boolean;
   quoteError?: string | null;
   onRetryQuote?: () => void;
   onBack?: () => void;
@@ -49,7 +51,8 @@ interface CheckoutDeliveryProps {
 export function CheckoutDelivery(props: CheckoutDeliveryProps) {
   const ctx = useCheckoutContext();
 
-  const deliveryMode = props.deliveryMode ?? ctx?.state.deliveryMode ?? "entrega";
+  const deliveryMode =
+    props.deliveryMode ?? ctx?.state.deliveryMode ?? "entrega";
   const setDeliveryMode =
     props.setDeliveryMode ?? ctx?.actions.setDeliveryMode ?? (() => {});
   const cep = props.cep ?? ctx?.state.cep ?? "";
@@ -62,7 +65,9 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
   const addressComplement =
     props.addressComplement ?? ctx?.state.addressComplement ?? "";
   const setAddressComplement =
-    props.setAddressComplement ?? ctx?.actions.setAddressComplement ?? (() => {});
+    props.setAddressComplement ??
+    ctx?.actions.setAddressComplement ??
+    (() => {});
   const city = props.city ?? ctx?.state.city ?? "Lages - SC";
   const setCity = props.setCity ?? ctx?.actions.setCity ?? (() => {});
   const notes = props.notes ?? ctx?.state.notes ?? "";
@@ -71,6 +76,7 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
   const onDeliveryChange = props.onDeliveryChange;
   const quote = props.quote ?? ctx?.meta.quote ?? null;
   const loadingQuote = props.loadingQuote ?? ctx?.meta.loadingQuote ?? false;
+  const debouncingCep = props.debouncingCep ?? false;
 
   const handleAddressResolved = useCallback(
     (resolved: { address: string; city: string }) => {
@@ -101,6 +107,24 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
     thresholdCents > 0 ? Math.round((subtotalCents / thresholdCents) * 100) : 0
   );
   const remainingCents = Math.max(0, thresholdCents - subtotalCents);
+
+  const normalizedCep = normalizeCep(cep);
+  const shippingZone = normalizedCep ? getShippingZone(normalizedCep) : null;
+  const isCalculatingShipping = Boolean(
+    normalizedCep && (loadingQuote || debouncingCep)
+  );
+  const isInvalidShippingCep = Boolean(
+    (normalizedCep && !shippingZone) || errors.cep
+  );
+
+  const isContinueDisabled =
+    deliveryMode === "entrega" &&
+    (loadingQuote ||
+      debouncingCep ||
+      !normalizedCep ||
+      !shippingZone ||
+      quote?.shippingCents === null ||
+      quote?.shippingCents === undefined);
 
   return (
     <section
@@ -141,8 +165,10 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
                 : `Faltam ${formatBrl(remainingCents)} para ganhar frete grátis (acima de R$ 199)`}
             </span>
             <span className="font-bold text-marina-800 shrink-0">
-              {loadingQuote
+              {loadingQuote || debouncingCep
                 ? "Calculando..."
+                : quote.shippingCents === null
+                ? "Calcular pelo CEP"
                 : quote.shippingCents === 0
                 ? "Grátis"
                 : formatBrl(quote.shippingCents)}
@@ -152,7 +178,7 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
             <div className="h-2 w-full rounded-full bg-silk-200 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 motion-reduce:transition-none ${
-                  remainingCents === 0 ? "bg-emerald-600" : "bg-marina-600"
+                  remainingCents === 0 ? "bg-emerald-whatsapp" : "bg-marina-600"
                 }`}
                 style={{ width: `${freeProgress}%` }}
               />
@@ -164,7 +190,7 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
       {props.quoteError && (
         <div
           role="alert"
-          className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-center justify-between gap-3"
+          className="p-3 rounded-xl bg-silk-50 border border-brand-accent/40 text-xs text-onyx-900 flex items-center justify-between gap-3"
         >
           <span>{props.quoteError}</span>
           {props.onRetryQuote && (
@@ -258,7 +284,7 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
                 <Store aria-hidden="true" className="w-4 h-4 mr-1.5 text-marina-700" />
                 Retirada na Loja Física
               </span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800">
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-marina-50 text-emerald-whatsapp">
                 Grátis
               </span>
             </div>
@@ -290,12 +316,25 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
         <div className="space-y-4 pt-1">
           {/* CEP */}
           <div>
-            <label
-              htmlFor="checkout-cep"
-              className="block text-xs font-semibold text-onyx-800 uppercase tracking-wider mb-1.5"
-            >
-              CEP de Entrega <span className="text-red-500" aria-hidden="true">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                htmlFor="checkout-cep"
+                className="block text-xs font-semibold text-onyx-800 uppercase tracking-wider"
+              >
+                CEP de Entrega{" "}
+                <span className="text-brand-accent" aria-hidden="true">
+                  *
+                </span>
+              </label>
+              <a
+                href="https://buscacepinter.correios.com.br"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-marina-700 hover:text-marina-900 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded"
+              >
+                Não sei meu CEP
+              </a>
+            </div>
             <div className="relative">
               <input
                 id="checkout-cep"
@@ -314,7 +353,7 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
                 maxLength={9}
                 className={`w-full px-4 py-2.5 min-h-[44px] rounded-xl border text-sm tabular-nums transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 ${
                   errors.cep
-                    ? "border-red-400 bg-red-50/20 focus-visible:border-red-500"
+                    ? "border-brand-accent bg-silk-50 focus-visible:border-brand-accent"
                     : "border-silk-200 hover:border-silk-300 focus-visible:border-marina-600"
                 }`}
               />
@@ -333,30 +372,90 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
               <p
                 id="checkout-cep-error"
                 role="alert"
-                className="mt-1 text-xs text-red-700 font-medium"
+                className="mt-1 text-xs text-brand-accent font-medium"
               >
                 {errors.cep}
               </p>
             )}
+
+            {/* Cartão de Frete por CEP */}
+            <div aria-live="polite" className="mt-2">
+              {isCalculatingShipping ? (
+                <div
+                  aria-busy="true"
+                  className="h-14 w-full rounded-xl bg-silk-100 border border-silk-200 px-4 flex items-center animate-pulse"
+                >
+                  <div className="h-4 w-2/3 rounded bg-silk-200" />
+                </div>
+              ) : isInvalidShippingCep ? (
+                <div className="min-h-[56px] rounded-xl bg-silk-50 border border-silk-200 px-4 py-3 flex items-center gap-2.5 text-xs text-onyx-700">
+                  <AlertCircle
+                    aria-hidden="true"
+                    className="w-4 h-4 text-brand-accent shrink-0"
+                  />
+                  <span>CEP não encontrado. Confira os números.</span>
+                </div>
+              ) : quote &&
+                quote.shippingCents !== null &&
+                (normalizedCep || quote.shippingCents === 0) ? (
+                <div className="min-h-[56px] rounded-xl bg-marina-50/60 border border-marina-200 px-4 py-3 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Truck
+                      aria-hidden="true"
+                      className="w-4 h-4 text-marina-700 shrink-0"
+                    />
+                    <div className="min-w-0">
+                      {quote.shippingZoneLabel && (
+                        <p className="font-semibold text-onyx-900 truncate">
+                          {quote.shippingZoneLabel}
+                        </p>
+                      )}
+                      <p className="text-onyx-700 tabular-nums">
+                        {quote.shippingCents === 0 ? (
+                          <>
+                            <span className="font-bold text-emerald-whatsapp">
+                              Grátis
+                            </span>
+                            {quote.shippingEtaDays
+                              ? ` · chega em ${quote.shippingEtaDays.min} a ${quote.shippingEtaDays.max} dias úteis`
+                              : ""}
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-semibold text-onyx-900">
+                              {formatBrl(quote.shippingCents)}
+                            </span>
+                            {quote.shippingEtaDays
+                              ? ` · chega em ${quote.shippingEtaDays.min} a ${quote.shippingEtaDays.max} dias úteis`
+                              : ""}
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
             {cepFeedback && (
               <div
                 role={cepFeedback.type === "warn" ? "alert" : "status"}
                 aria-live="polite"
                 className={`mt-2 p-2.5 rounded-lg text-xs flex items-start space-x-2 ${
                   cepFeedback.type === "success"
-                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                    : "bg-amber-50 text-amber-800 border border-amber-200"
+                    ? "bg-marina-50 text-onyx-900 border border-marina-200"
+                    : "bg-silk-100 text-onyx-800 border border-silk-300"
                 }`}
               >
                 {cepFeedback.type === "success" ? (
                   <Check
                     aria-hidden="true"
-                    className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5"
+                    className="w-4 h-4 text-emerald-whatsapp flex-shrink-0 mt-0.5"
                   />
                 ) : (
                   <AlertCircle
                     aria-hidden="true"
-                    className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"
+                    className="w-4 h-4 text-brand-accent flex-shrink-0 mt-0.5"
                   />
                 )}
                 <span>{cepFeedback.text}</span>
@@ -371,7 +470,9 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
               className="block text-xs font-semibold text-onyx-800 uppercase tracking-wider mb-1.5"
             >
               Endereço (Rua e Bairro){" "}
-              <span className="text-red-500" aria-hidden="true">*</span>
+              <span className="text-brand-accent" aria-hidden="true">
+                *
+              </span>
             </label>
             <input
               id="checkout-address"
@@ -390,7 +491,7 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
               placeholder="Ex: Rua Blumenau, Bairro São Cristóvão"
               className={`w-full px-4 py-2.5 min-h-[44px] rounded-xl border text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 ${
                 errors.address
-                  ? "border-red-400 bg-red-50/20 focus-visible:border-red-500"
+                  ? "border-brand-accent bg-silk-50 focus-visible:border-brand-accent"
                   : "border-silk-200 hover:border-silk-300 focus-visible:border-marina-600"
               }`}
             />
@@ -398,7 +499,7 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
               <p
                 id="checkout-address-error"
                 role="alert"
-                className="mt-1 text-xs text-red-700 font-medium"
+                className="mt-1 text-xs text-brand-accent font-medium"
               >
                 {errors.address}
               </p>
@@ -431,7 +532,8 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
                 htmlFor="checkout-address-complement"
                 className="block text-xs font-semibold text-onyx-800 uppercase tracking-wider mb-1.5"
               >
-                Complemento <span className="text-onyx-600 font-normal">(Opcional)</span>
+                Complemento{" "}
+                <span className="text-onyx-600 font-normal">(Opcional)</span>
               </label>
               <input
                 id="checkout-address-complement"
@@ -452,7 +554,9 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
               className="block text-xs font-semibold text-onyx-800 uppercase tracking-wider mb-1.5"
             >
               Cidade / Estado{" "}
-              <span className="text-red-500" aria-hidden="true">*</span>
+              <span className="text-brand-accent" aria-hidden="true">
+                *
+              </span>
             </label>
             <input
               id="checkout-city"
@@ -469,7 +573,7 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
               placeholder="Lages - SC"
               className={`w-full px-4 py-2.5 min-h-[44px] rounded-xl border text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 ${
                 errors.city
-                  ? "border-red-400 bg-red-50/20 focus-visible:border-red-500"
+                  ? "border-brand-accent bg-silk-50 focus-visible:border-brand-accent"
                   : "border-silk-200 hover:border-silk-300 focus-visible:border-marina-600"
               }`}
             />
@@ -477,7 +581,7 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
               <p
                 id="checkout-city-error"
                 role="alert"
-                className="mt-1 text-xs text-red-700 font-medium"
+                className="mt-1 text-xs text-brand-accent font-medium"
               >
                 {errors.city}
               </p>
@@ -509,7 +613,12 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
       {(props.onBack || props.onNext) && (
         <div className="hidden lg:flex items-center justify-between pt-2 border-t border-silk-100">
           {props.onBack ? (
-            <Button type="button" variant="ghost" size="md" onClick={props.onBack}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="md"
+              onClick={props.onBack}
+            >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" />
               <span>Voltar</span>
             </Button>
@@ -517,7 +626,13 @@ export function CheckoutDelivery(props: CheckoutDeliveryProps) {
             <span />
           )}
           {props.onNext && (
-            <Button type="button" variant="primary" size="lg" onClick={props.onNext}>
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              disabled={isContinueDisabled}
+              onClick={props.onNext}
+            >
               <span>Continuar para pagamento</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Button>

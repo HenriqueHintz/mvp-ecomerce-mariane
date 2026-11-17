@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { COMMERCE_CONFIG } from "@/config/commerce";
+import { getShippingZone, normalizeCep } from "@/lib/shipping";
 
 export const checkoutItemSchema = z.object({
   productId: z.string().min(1, "Identificador do produto é obrigatório").max(80),
@@ -16,6 +17,8 @@ export const checkoutItemSchema = z.object({
 export const quoteRequestSchema = z.object({
   deliveryMode: z.enum(["entrega", "retirada"]),
   paymentMethod: z.enum(["whatsapp", "pix", "cartao"]),
+  cep: z.string().nullish(),
+  couponCode: z.string().max(30, "Código de cupom muito longo").nullish(),
   items: z
     .array(checkoutItemSchema)
     .min(1, "A sacola está vazia")
@@ -56,19 +59,26 @@ export const createOrderSchema = z
     deliveryMode: z.enum(["entrega", "retirada"]),
     cep: z
       .string()
-      .optional()
+      .nullish()
       .transform((val) => (val ? val.replace(/\D/g, "") : "")),
     address: z
       .string()
-      .optional()
+      .nullish()
       .transform((val) => (val ? val.replace(/[<>]/g, "").trim() : "")),
     city: z
       .string()
-      .optional()
+      .nullish()
       .transform((val) => (val ? val.replace(/[<>]/g, "").trim() : "")),
 
-    // Pagamento e Observações
+    // Pagamento, Cupom e Observações
     paymentMethod: z.enum(["whatsapp", "pix", "cartao"]),
+    couponCode: z
+      .string()
+      .max(30, "Código de cupom muito longo")
+      .nullish()
+      .transform((val) =>
+        val && val.trim().length > 0 ? val.trim() : undefined
+      ),
     notes: z
       .string()
       .optional()
@@ -94,7 +104,8 @@ export const createOrderSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.deliveryMode === "entrega") {
-      if (!data.cep || data.cep.length !== 8) {
+      const normalized = normalizeCep(data.cep);
+      if (!normalized || !getShippingZone(normalized)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["cep"],

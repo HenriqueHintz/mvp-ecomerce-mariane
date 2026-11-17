@@ -3,6 +3,10 @@ import { db, products } from "@/db";
 import { inArray } from "drizzle-orm";
 import { quoteRequestSchema } from "@/lib/validations/checkout";
 import { calculateOrderPricing, toCents } from "@/lib/pricing";
+import {
+  checkCouponQuoteRateLimit,
+  findCouponByCode,
+} from "@/lib/coupons";
 import { createProblemDetailsResponse } from "@/lib/api-errors";
 import { checkRateLimit, extractClientIp } from "@/lib/rate-limit";
 import { COMMERCE_CONFIG } from "@/config/commerce";
@@ -10,9 +14,9 @@ import { SITE_URL } from "@/lib/site";
 
 export async function POST(request: Request) {
   try {
-    // Rate Limiting: máx 30 cotações por minuto por IP (Especificação Seção J.1)
+    // Rate Limiting geral: máx 60 cotações por minuto por IP
     const clientIp = extractClientIp(request);
-    const rateCheck = checkRateLimit("checkout_quote", clientIp, 30, 60 * 1000);
+    const rateCheck = checkRateLimit("checkout_quote", clientIp, 60, 60 * 1000);
     if (!rateCheck.allowed) {
       return createProblemDetailsResponse(
         429,
@@ -47,7 +51,29 @@ export async function POST(request: Request) {
       );
     }
 
-    const { items, deliveryMode, paymentMethod } = parsed.data;
+    const { items, deliveryMode, paymentMethod, cep, couponCode } = parsed.data;
+    const rawCouponInput =
+      typeof couponCode === "string" && couponCode.trim().length > 0
+        ? couponCode.trim()
+        : null;
+
+    // Rate Limit persistido no banco: máx 10 tentativas de cupom não vazio por IP a cada 10 minutos
+    if (rawCouponInput) {
+      const couponRl = await checkCouponQuoteRateLimit(clientIp);
+      if (!couponRl.allowed) {
+        const response = createProblemDetailsResponse(
+          429,
+          "Muitas tentativas de cupom",
+          `Limite de tentativas de cupom atingido. Aguarde ${couponRl.retryAfterSeconds} segundos.`,
+          {
+            type: `${SITE_URL}/erros/limite-cupom`,
+            extra: { retryAfterSeconds: couponRl.retryAfterSeconds },
+          }
+        );
+        response.headers.set("Retry-After", String(couponRl.retryAfterSeconds));
+        return response;
+      }
+    }
 
     // Agregar itens com mesmo productId (simétrico a createOrderTransaction)
     const itemMap = new Map<string, number>();
@@ -75,10 +101,10 @@ export async function POST(request: Request) {
 
     const requestedIds = aggregatedItems.map((i) => i.productId);
 
-    const dbProducts = await db
-      .select()
-      .from(products)
-      .where(inArray(products.id, requestedIds));
+    const [dbProducts, couponRecord] = await Promise.all([
+      db.select().from(products).where(inArray(products.id, requestedIds)),
+      rawCouponInput ? findCouponByCode(rawCouponInput) : Promise.resolve(null),
+    ]);
 
     const prodMap = new Map(dbProducts.map((p) => [p.id, p]));
 
@@ -97,7 +123,6 @@ export async function POST(request: Request) {
 
     const pricingItems = aggregatedItems.map((item) => {
       const prod = prodMap.get(item.productId)!;
-      // Preferir centavos inteiros da nova coluna, com fallback seguro para reais legados
       const priceCents =
         prod.priceCents != null ? prod.priceCents : toCents(prod.price);
       const promoPriceCents =
@@ -120,6 +145,9 @@ export async function POST(request: Request) {
     const quote = calculateOrderPricing({
       deliveryMode,
       paymentMethod,
+      cep: cep ?? null,
+      coupon: couponRecord,
+      couponCodeInput: rawCouponInput,
       items: pricingItems,
     });
 

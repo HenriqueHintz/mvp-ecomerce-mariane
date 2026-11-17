@@ -76,12 +76,12 @@ async function runIntegrationTests() {
     }
     // Subtotal: 9000 * 2 = 18000 cents
     // PIX 5%: 900 cents
-    // Frete entrega (< 19900): 2290 cents
-    // Total: 18000 - 900 + 2290 = 19390 cents
+    // Frete entrega Lages 88505300 (< 19900): 990 cents
+    // Total: 18000 - 900 + 990 = 18090 cents
     if (order1.subtotalCents !== 18000) throw new Error(`Subtotal incorreto: ${order1.subtotalCents}`);
     if (order1.discountCents !== 900) throw new Error(`Desconto PIX incorreto: ${order1.discountCents}`);
-    if (order1.shippingCents !== 2290) throw new Error(`Frete incorreto: ${order1.shippingCents}`);
-    if (order1.totalCents !== 19390) throw new Error(`Total incorreto: ${order1.totalCents}`);
+    if (order1.shippingCents !== 990) throw new Error(`Frete incorreto: ${order1.shippingCents}`);
+    if (order1.totalCents !== 18090) throw new Error(`Total incorreto: ${order1.totalCents}`);
 
     // Verificar estoque debitado: 5 - 2 = 3
     const prodAfter1 = await db.select().from(products).where(eq(products.id, testProdId)).limit(1);

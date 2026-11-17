@@ -12,7 +12,8 @@ import React, {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/context/CartContext";
-import { formatBrl } from "@/lib/pricing";
+import { formatBrl, OrderPricingSummary } from "@/lib/pricing";
+import { getShippingZone, normalizeCep } from "@/lib/shipping";
 import {
   validateAsaasCheckoutUrl,
   validateReturnUrl,
@@ -98,6 +99,14 @@ function CheckoutFlowContent() {
   // Submissão final & aceite
   const [submitting, setSubmitting] = useState(false);
   const [termsError, setTermsError] = useState<string | null>(null);
+
+  // Estado de Cupom de Desconto (persiste entre etapas)
+  const [couponCode, setCouponCode] = useState<string | null>(null);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [couponUiError, setCouponUiError] = useState<string | null>(null);
+  const [couponRemovedNotice, setCouponRemovedNotice] = useState<string | null>(
+    null
+  );
 
   // Monitoramento de alteração na sacola durante checkout
   const initialCartSignatureRef = useRef<string | null>(null);
@@ -209,11 +218,93 @@ function CheckoutFlowContent() {
   );
 
   // Cotação Autoritativa via Servidor
-  const { quote, loadingQuote, quoteError, refreshQuote } = useCheckoutQuote({
+  const {
+    quote,
+    loadingQuote,
+    debouncingCep,
+    quoteError,
+    refreshQuote,
+  } = useCheckoutQuote({
     items,
     deliveryMode: wizard.deliveryMode,
     paymentMethod: wizard.paymentMethod,
+    cep: wizard.deliveryMode === "entrega" ? wizard.cep : null,
+    couponCode,
   });
+
+  // Se o orçamento voltar com couponError depois de o cupom já ter sido aplicado:
+  // limpe couponCode e mostre o aviso "O cupom foi removido: {mensagem}".
+  useEffect(() => {
+    if (couponCode && quote?.couponError) {
+      setCouponCode(null);
+      setCouponUiError(null);
+      setCouponRemovedNotice(`O cupom foi removido: ${quote.couponError}`);
+    }
+  }, [couponCode, quote?.couponError]);
+
+  const handleApplyCoupon = useCallback(
+    async (rawCode: string) => {
+      const trimmed = rawCode.trim().toUpperCase();
+      if (!trimmed || items.length === 0) return;
+
+      setApplyingCoupon(true);
+      setCouponUiError(null);
+      setCouponRemovedNotice(null);
+
+      try {
+        const effectiveCep =
+          wizard.deliveryMode === "entrega" ? normalizeCep(wizard.cep) : null;
+        const res = await fetch("/api/checkout/cotacao", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            deliveryMode: wizard.deliveryMode,
+            paymentMethod: wizard.paymentMethod,
+            cep: effectiveCep,
+            couponCode: trimmed,
+            items: items.map((i) => ({
+              productId: i.id,
+              quantity: i.quantity,
+            })),
+          }),
+        });
+
+        const data = (await res.json().catch(() => ({}))) as {
+          success?: boolean;
+          detail?: string;
+          quote?: OrderPricingSummary;
+        };
+
+        if (!res.ok || !data.success || !data.quote) {
+          setCouponUiError(
+            data.detail || "Não foi possível validar o cupom no momento."
+          );
+          return;
+        }
+
+        if (data.quote.couponError) {
+          setCouponUiError(data.quote.couponError);
+          return;
+        }
+
+        if (data.quote.couponCode) {
+          setCouponCode(data.quote.couponCode);
+          setCouponUiError(null);
+        }
+      } catch {
+        setCouponUiError("Erro de conexão ao validar o cupom.");
+      } finally {
+        setApplyingCoupon(false);
+      }
+    },
+    [items, wizard.deliveryMode, wizard.paymentMethod, wizard.cep]
+  );
+
+  const handleRemoveCoupon = useCallback(() => {
+    setCouponCode(null);
+    setCouponUiError(null);
+    setCouponRemovedNotice(null);
+  }, []);
 
   useEffect(() => {
     if (!isHydrated || items.length === 0) return;
@@ -435,10 +526,26 @@ function CheckoutFlowContent() {
       setGlobalError("Preencha os campos obrigatórios de entrega para avançar.");
       return;
     }
+    if (
+      wizard.deliveryMode === "entrega" &&
+      (loadingQuote ||
+        debouncingCep ||
+        !normalizeCep(wizard.cep) ||
+        !getShippingZone(wizard.cep) ||
+        quote?.shippingCents === null ||
+        quote?.shippingCents === undefined)
+    ) {
+      setFormErrors((prev) => ({
+        ...prev,
+        cep: "CEP não encontrado. Confira os números.",
+      }));
+      setGlobalError("CEP não encontrado. Confira os números.");
+      return;
+    }
     setFormErrors({});
     dispatch({ type: "COMPLETE_DELIVERY" });
     pushStepUrl("pagamento");
-  }, [wizard, pushStepUrl]);
+  }, [wizard, loadingQuote, debouncingCep, quote?.shippingCents, pushStepUrl]);
 
   // Etapa 4 -> Avançar Pagamento
   const handleContinueFromPayment = useCallback(() => {
@@ -483,6 +590,7 @@ function CheckoutFlowContent() {
               wizard.deliveryMode === "entrega" ? fullAddress : undefined,
             city: wizard.deliveryMode === "entrega" ? wizard.city : undefined,
             paymentMethod: wizard.paymentMethod,
+            couponCode: couponCode || undefined,
             notes: wizard.notes || undefined,
             marketingConsent: wizard.marketingConsent,
             idempotencyKey,
@@ -522,6 +630,9 @@ function CheckoutFlowContent() {
             data.detail ||
             (Array.isArray(data.errors) ? data.errors.join(" ") : null) ||
             "Não foi possível registrar seu pedido. Verifique os dados.";
+          if (msg.toLowerCase().includes("cupom")) {
+            setCouponCode(null);
+          }
           setGlobalError(msg);
           setSubmitting(false);
           return;
@@ -585,7 +696,7 @@ function CheckoutFlowContent() {
         setSubmitting(false);
       }
     },
-    [wizard, idempotencyKey, honeypot, items, clearCart, router]
+    [wizard, idempotencyKey, honeypot, items, clearCart, router, couponCode]
   );
 
   // Ações expostas pelo CheckoutContext (mantendo contrato existente)
@@ -777,7 +888,12 @@ function CheckoutFlowContent() {
       case "entrega":
         return {
           label: "Continuar",
-          disabled: loadingQuote,
+          disabled:
+            loadingQuote ||
+            debouncingCep ||
+            (wizard.deliveryMode === "entrega" &&
+              (quote?.shippingCents === null ||
+                quote?.shippingCents === undefined)),
           loading: false,
           onBack: () =>
             navigateToStep(
@@ -868,6 +984,20 @@ function CheckoutFlowContent() {
             </div>
           )}
 
+          {/* Aviso de remoção automática de cupom */}
+          {couponRemovedNotice && (
+            <div
+              role="alert"
+              className="p-3.5 rounded-xl bg-silk-50 border border-brand-accent/40 text-onyx-900 text-xs sm:text-sm flex items-start gap-2.5"
+            >
+              <AlertCircle
+                className="w-4 h-4 text-brand-accent shrink-0 mt-0.5"
+                aria-hidden="true"
+              />
+              <span>{couponRemovedNotice}</span>
+            </div>
+          )}
+
           {/* Alerta de Erro Global */}
           {activeError && (
             <div
@@ -936,6 +1066,11 @@ function CheckoutFlowContent() {
                   paymentMethod={wizard.paymentMethod}
                   cartItems={items}
                   showSubmitButton={false}
+                  couponCode={couponCode}
+                  applyingCoupon={applyingCoupon}
+                  couponError={couponUiError}
+                  onApplyCoupon={handleApplyCoupon}
+                  onRemoveCoupon={handleRemoveCoupon}
                 />
               </div>
             )}
@@ -976,6 +1111,7 @@ function CheckoutFlowContent() {
                   onBlurField={handleFieldBlurDelivery}
                   quote={quote}
                   loadingQuote={loadingQuote}
+                  debouncingCep={debouncingCep}
                   quoteError={quoteError}
                   onRetryQuote={refreshQuote}
                   onBack={() => navigateToStep("identificacao")}
@@ -1037,6 +1173,11 @@ function CheckoutFlowContent() {
                 cartItems={items}
                 showSubmitButton={false}
                 canSubmit={wizard.acceptedTerms}
+                couponCode={couponCode}
+                applyingCoupon={applyingCoupon}
+                couponError={couponUiError}
+                onApplyCoupon={handleApplyCoupon}
+                onRemoveCoupon={handleRemoveCoupon}
               />
             </div>
           </div>

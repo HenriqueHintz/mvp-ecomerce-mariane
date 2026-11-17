@@ -1,4 +1,12 @@
 import { COMMERCE_CONFIG } from "@/config/commerce";
+import { SHIPPING_ZONES } from "@/config/shipping";
+import { getShippingZone } from "@/lib/shipping";
+import {
+  type CouponRecord,
+  evaluateCoupon,
+  getCouponErrorMessage,
+  resolveCouponMinSubtotalCents,
+} from "@/lib/coupon-rules";
 
 export function toCents(reais: number): number {
   if (!Number.isFinite(reais)) return 0;
@@ -42,15 +50,23 @@ export function calculateItemPriceCents(item: ItemPricingSource): number {
 
 export function calculateShippingCents(
   subtotalCents: number,
-  deliveryMode: "entrega" | "retirada"
-): number {
+  deliveryMode: "entrega" | "retirada",
+  cep: string | null = null
+): number | null {
   if (deliveryMode === "retirada") {
     return 0;
   }
   if (subtotalCents >= COMMERCE_CONFIG.FREE_SHIPPING_THRESHOLD_CENTS) {
     return 0;
   }
-  return COMMERCE_CONFIG.SHIPPING_FIXED_CENTS;
+  if (!cep) {
+    return null;
+  }
+  const zone = getShippingZone(cep);
+  if (!zone) {
+    return null;
+  }
+  return SHIPPING_ZONES[zone].priceCents;
 }
 
 export interface PixDiscountItem {
@@ -66,7 +82,9 @@ export function calculatePixDiscountCents(items: PixDiscountItem[]): number {
     if (qty <= 0) continue;
     const unitPrice = Math.max(0, Math.round(item.unitPriceCents));
     const percent =
-      item.pixDiscountPercent != null && Number.isFinite(item.pixDiscountPercent) && item.pixDiscountPercent >= 0
+      item.pixDiscountPercent != null &&
+      Number.isFinite(item.pixDiscountPercent) &&
+      item.pixDiscountPercent >= 0
         ? item.pixDiscountPercent
         : COMMERCE_CONFIG.DEFAULT_PIX_DISCOUNT_PERCENT;
 
@@ -90,6 +108,10 @@ export interface PricingOrderInput {
   deliveryMode: "entrega" | "retirada";
   paymentMethod: "whatsapp" | "pix" | "cartao";
   items: PricingInputItem[];
+  cep?: string | null;
+  coupon?: CouponRecord | null;
+  couponCodeInput?: string | null;
+  now?: Date;
 }
 
 export interface ResolvedLineItem {
@@ -103,7 +125,13 @@ export interface ResolvedLineItem {
 
 export interface OrderPricingSummary {
   subtotalCents: number;
-  shippingCents: number;
+  shippingCents: number | null;
+  shippingZoneLabel: string | null;
+  shippingEtaDays: { min: number; max: number } | null;
+  couponCode: string | null;
+  couponDiscountCents: number;
+  couponError: string | null;
+  pixDiscountCents: number;
   discountCents: number;
   totalCents: number;
   freeShippingThresholdCents: number;
@@ -111,15 +139,27 @@ export interface OrderPricingSummary {
   items: ResolvedLineItem[];
 }
 
-export function calculateOrderPricing(input: PricingOrderInput): OrderPricingSummary {
+export function calculateOrderPricing(
+  input: PricingOrderInput
+): OrderPricingSummary {
   let subtotalCents = 0;
   const resolvedItems: ResolvedLineItem[] = [];
+  const itemPercents: number[] = [];
 
+  // 1. Subtotal
   for (const item of input.items) {
     const qty = Math.max(1, Math.floor(item.quantity));
     const unitPriceCents = calculateItemPriceCents(item);
     const lineTotalCents = unitPriceCents * qty;
     subtotalCents += lineTotalCents;
+
+    const percent =
+      item.pixDiscountPercent != null &&
+      Number.isFinite(item.pixDiscountPercent) &&
+      item.pixDiscountPercent >= 0
+        ? item.pixDiscountPercent
+        : COMMERCE_CONFIG.DEFAULT_PIX_DISCOUNT_PERCENT;
+    itemPercents.push(percent);
 
     const pixDiscountCents = calculatePixDiscountCents([
       {
@@ -139,16 +179,97 @@ export function calculateOrderPricing(input: PricingOrderInput): OrderPricingSum
     });
   }
 
-  const shippingCents = calculateShippingCents(subtotalCents, input.deliveryMode);
+  // 2. Cupom (incide só sobre o subtotal; free_shipping zera o frete)
+  let couponCode: string | null = null;
+  let couponDiscountCents = 0;
+  let couponError: string | null = null;
+  let couponFreeShipping = false;
 
-  const discountCents =
-    input.paymentMethod === "pix"
-      ? resolvedItems.reduce((acc, curr) => acc + curr.pixDiscountCents, 0)
-      : 0;
+  if (input.coupon) {
+    const evalRes = evaluateCoupon(
+      input.coupon,
+      subtotalCents,
+      input.now ?? new Date()
+    );
+    if (evalRes.ok) {
+      couponCode = input.coupon.code.trim().toUpperCase();
+      couponDiscountCents = evalRes.discountCents;
+      couponFreeShipping = evalRes.freeShipping;
+    } else {
+      couponError = getCouponErrorMessage(
+        evalRes.reason,
+        resolveCouponMinSubtotalCents(input.coupon)
+      );
+    }
+  } else if (
+    input.couponCodeInput != null &&
+    input.couponCodeInput.trim().length > 0
+  ) {
+    couponError = getCouponErrorMessage("invalid");
+  }
 
-  const totalCents = Math.max(0, subtotalCents - discountCents + shippingCents);
+  // 3. PIX de 5% sobre (subtotal - cupom), mantendo o percentual de cada produto proporcionalmente
+  const discountedSubtotalCents = Math.max(
+    0,
+    subtotalCents - couponDiscountCents
+  );
 
-  const freeShippingThresholdCents = COMMERCE_CONFIG.FREE_SHIPPING_THRESHOLD_CENTS;
+  let pixDiscountCents = 0;
+  if (input.paymentMethod === "pix" && discountedSubtotalCents > 0) {
+    if (couponDiscountCents === 0) {
+      pixDiscountCents = resolvedItems.reduce(
+        (acc, curr) => acc + curr.pixDiscountCents,
+        0
+      );
+    } else if (subtotalCents > 0) {
+      const weightedNumerator = resolvedItems.reduce(
+        (acc, item, idx) => acc + item.lineTotalCents * itemPercents[idx],
+        0
+      );
+      pixDiscountCents = Math.min(
+        discountedSubtotalCents,
+        Math.max(
+          0,
+          Math.round(
+            (weightedNumerator * discountedSubtotalCents) /
+              (subtotalCents * 100)
+          )
+        )
+      );
+    }
+  }
+
+  // 4. Frete e Região
+  const zone =
+    input.deliveryMode === "entrega" && input.cep
+      ? getShippingZone(input.cep)
+      : null;
+
+  const shippingZoneLabel = zone ? SHIPPING_ZONES[zone].label : null;
+  const shippingEtaDays = zone
+    ? { min: SHIPPING_ZONES[zone].etaMin, max: SHIPPING_ZONES[zone].etaMax }
+    : null;
+
+  const baseShippingCents = calculateShippingCents(
+    subtotalCents,
+    input.deliveryMode,
+    input.cep ?? null
+  );
+
+  const shippingCents = couponFreeShipping ? 0 : baseShippingCents;
+
+  // 5. Total = max(0, subtotal - cupom - pix + (frete ?? 0))
+  const discountCents = couponDiscountCents + pixDiscountCents;
+  const totalCents = Math.max(
+    0,
+    subtotalCents -
+      couponDiscountCents -
+      pixDiscountCents +
+      (shippingCents ?? 0)
+  );
+
+  const freeShippingThresholdCents =
+    COMMERCE_CONFIG.FREE_SHIPPING_THRESHOLD_CENTS;
   const freeShippingRemainingCents = Math.max(
     0,
     freeShippingThresholdCents - subtotalCents
@@ -157,6 +278,12 @@ export function calculateOrderPricing(input: PricingOrderInput): OrderPricingSum
   return {
     subtotalCents,
     shippingCents,
+    shippingZoneLabel,
+    shippingEtaDays,
+    couponCode,
+    couponDiscountCents,
+    couponError,
+    pixDiscountCents,
     discountCents,
     totalCents,
     freeShippingThresholdCents,

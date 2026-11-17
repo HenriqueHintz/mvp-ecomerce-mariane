@@ -32,23 +32,29 @@ if (promoPrice !== 8500) throw new Error("Preço promocional válido falhou");
 const invalidPromo = calculateItemPriceCents({ priceCents: 10000, promoPriceCents: 12000 });
 if (invalidPromo !== 10000) throw new Error("Preço promocional mais caro que o original deve ser ignorado");
 
-// 3. Frete Fixo vs Frete Grátis
+// 3. Frete por CEP vs Frete Grátis
 // 3.1 Retirada é sempre 0
-if (calculateShippingCents(5000, "retirada") !== 0) throw new Error("Retirada deve ter frete 0");
-if (calculateShippingCents(0, "retirada") !== 0) throw new Error("Retirada com subtotal 0 deve ter frete 0");
+if (calculateShippingCents(5000, "retirada", null) !== 0) throw new Error("Retirada deve ter frete 0");
+if (calculateShippingCents(0, "retirada", null) !== 0) throw new Error("Retirada com subtotal 0 deve ter frete 0");
 
-// 3.2 Entrega abaixo do threshold (R$ 199,00 = 19900 cents)
-if (calculateShippingCents(19899, "entrega") !== 2290) {
-  throw new Error("Entrega de R$ 198,99 deve ter frete R$ 22,90 (2290 cents)");
+// 3.2 Entrega abaixo do threshold (R$ 199,00 = 19900 cents) com CEP Sul (80010-000 -> 2290) e sem CEP (null)
+if (calculateShippingCents(19899, "entrega", null) !== null) {
+  throw new Error("Entrega sem CEP abaixo de R$ 199,00 deve retornar null");
+}
+if (calculateShippingCents(19899, "entrega", "80010-000") !== 2290) {
+  throw new Error("Entrega Sul de R$ 198,99 deve ter frete R$ 22,90 (2290 cents)");
+}
+if (calculateShippingCents(19899, "entrega", "88505-300") !== 990) {
+  throw new Error("Entrega Lages de R$ 198,99 deve ter frete R$ 9,90 (990 cents)");
 }
 
 // 3.3 Entrega no valor EXATO do threshold (R$ 199,00)
-if (calculateShippingCents(19900, "entrega") !== 0) {
+if (calculateShippingCents(19900, "entrega", "80010-000") !== 0) {
   throw new Error("Entrega no valor exato de R$ 199,00 (19900 cents) DEVE ser frete grátis (0)");
 }
 
 // 3.4 Entrega acima do threshold
-if (calculateShippingCents(25000, "entrega") !== 0) {
+if (calculateShippingCents(25000, "entrega", "80010-000") !== 0) {
   throw new Error("Entrega acima do threshold DEVE ser frete grátis (0)");
 }
 
@@ -75,6 +81,7 @@ if (discRound !== 100) throw new Error(`Arredondamento centavos do PIX falhou: $
 const quotePix = calculateOrderPricing({
   deliveryMode: "entrega",
   paymentMethod: "pix",
+  cep: "80010-000",
   items: [
     {
       productId: "p1",

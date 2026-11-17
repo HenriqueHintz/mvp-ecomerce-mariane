@@ -221,16 +221,27 @@ export function CheckoutReview({
               <span>Subtotal</span>
               <span>{formatBrl(quote.subtotalCents)}</span>
             </div>
-            {quote.discountCents > 0 && (
-              <div className="flex justify-between text-emerald-800 font-semibold">
+            {quote.couponDiscountCents > 0 && (
+              <div className="flex justify-between text-emerald-whatsapp font-semibold">
+                <span>
+                  Desconto do cupom
+                  {quote.couponCode ? ` (${quote.couponCode})` : ""}
+                </span>
+                <span>−{formatBrl(quote.couponDiscountCents)}</span>
+              </div>
+            )}
+            {quote.pixDiscountCents > 0 && (
+              <div className="flex justify-between text-brand font-semibold">
                 <span>Desconto PIX (5% OFF)</span>
-                <span>- {formatBrl(quote.discountCents)}</span>
+                <span>−{formatBrl(quote.pixDiscountCents)}</span>
               </div>
             )}
             <div className="flex justify-between text-onyx-700">
               <span>Frete</span>
               <span className="font-semibold">
-                {quote.shippingCents === 0
+                {quote.shippingCents === null
+                  ? "Calcular pelo CEP"
+                  : quote.shippingCents === 0
                   ? deliveryMode === "retirada"
                     ? "Grátis (Retirada)"
                     : "Grátis"

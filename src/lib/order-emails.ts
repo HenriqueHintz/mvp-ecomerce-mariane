@@ -10,6 +10,8 @@ import { maskPiiEmail } from "@/lib/orders";
 import { createSandboxPayment } from "@/lib/payments";
 import { SITE_URL } from "@/lib/site";
 import { STORE_CONFIG } from "@/config/store";
+import { SHIPPING_ZONES } from "@/config/shipping";
+import { getShippingZone } from "@/lib/shipping";
 
 const NOTIFIED_ADMIN_STATUSES = new Set<OrderStatus>([
   "enviado",
@@ -201,6 +203,12 @@ export async function sendOrderReceivedEmail(orderId: string): Promise<void> {
     );
 
     const shippingCents = order.shippingCents ?? 0;
+    const couponCode = order.couponCode ?? null;
+    const couponDiscountCents = order.couponDiscountCents ?? 0;
+    const pixDiscountCents = Math.max(
+      0,
+      (order.discountCents ?? 0) - couponDiscountCents
+    );
     const totalCents =
       order.totalCents != null
         ? order.totalCents
@@ -213,6 +221,16 @@ export async function sendOrderReceivedEmail(orderId: string): Promise<void> {
       PAYMENT_LABELS[order.paymentMethod || "whatsapp"] ||
       order.paymentMethod ||
       "WhatsApp";
+
+    const cepMatch =
+      order.deliveryMode === "entrega" && order.shippingAddress
+        ? order.shippingAddress.match(/CEP:\s*([0-9-]{8,9})/i)
+        : null;
+    const shippingZone = cepMatch ? getShippingZone(cepMatch[1]) : null;
+    const shippingZoneMeta = shippingZone ? SHIPPING_ZONES[shippingZone] : null;
+    const shippingLabelText = shippingZoneMeta
+      ? `Frete (${shippingZoneMeta.label} · ${shippingZoneMeta.etaMin} a ${shippingZoneMeta.etaMax} dias úteis)`
+      : "Frete";
 
     const itemsHtml = items
       .map((item) => {
@@ -228,6 +246,28 @@ export async function sendOrderReceivedEmail(orderId: string): Promise<void> {
         </tr>`;
       })
       .join("");
+
+    const couponHtmlRow =
+      couponCode && couponDiscountCents > 0
+        ? `<tr>
+          <td style="padding:8px 0;font-size:13px;color:#0F766E;">Cupom ${escapeHtml(
+            couponCode
+          )}</td>
+          <td style="padding:8px 0;font-size:13px;color:#0F766E;text-align:right;font-weight:600;">
+            &minus;${escapeHtml(formatBrl(couponDiscountCents))}
+          </td>
+        </tr>`
+        : "";
+
+    const pixHtmlRow =
+      pixDiscountCents > 0
+        ? `<tr>
+          <td style="padding:8px 0;font-size:13px;color:#75066A;">Desconto PIX</td>
+          <td style="padding:8px 0;font-size:13px;color:#75066A;text-align:right;font-weight:600;">
+            &minus;${escapeHtml(formatBrl(pixDiscountCents))}
+          </td>
+        </tr>`
+        : "";
 
     const bodyHtml = `
       <div style="background:#FAF5FB;border:1px solid #EDE2EF;border-radius:12px;padding:16px;margin-bottom:16px;">
@@ -250,8 +290,12 @@ export async function sendOrderReceivedEmail(orderId: string): Promise<void> {
       </div>
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin-bottom:12px;">
         ${itemsHtml}
+        ${couponHtmlRow}
+        ${pixHtmlRow}
         <tr>
-          <td style="padding:8px 0;font-size:13px;color:#5A4758;">Frete</td>
+          <td style="padding:8px 0;font-size:13px;color:#5A4758;">${escapeHtml(
+            shippingLabelText
+          )}</td>
           <td style="padding:8px 0;font-size:13px;color:#1A0918;text-align:right;">
             ${shippingCents === 0 ? "Grátis" : escapeHtml(formatBrl(shippingCents))}
           </td>
@@ -277,7 +321,15 @@ export async function sendOrderReceivedEmail(orderId: string): Promise<void> {
           item.lineTotalCents ?? Math.round(item.unitPrice * item.quantity * 100);
         return `- ${item.quantity}x ${item.productName}: ${formatBrl(lineCents)}`;
       }),
-      `Frete: ${shippingCents === 0 ? "Grátis" : formatBrl(shippingCents)}`,
+      ...(couponCode && couponDiscountCents > 0
+        ? [`Cupom ${couponCode}: −${formatBrl(couponDiscountCents)}`]
+        : []),
+      ...(pixDiscountCents > 0
+        ? [`Desconto PIX: −${formatBrl(pixDiscountCents)}`]
+        : []),
+      `${shippingLabelText}: ${
+        shippingCents === 0 ? "Grátis" : formatBrl(shippingCents)
+      }`,
       `Total: ${formatBrl(totalCents)}`,
     ];
 

@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { db, orders, orderItems, products, orderStatusHistory } from "@/db";
+import { db, orders, orderItems, products, orderStatusHistory, coupons } from "@/db";
 import { eq, inArray, and, gte, sql } from "drizzle-orm";
 import { createOrderSchema, CreateOrderInput } from "@/lib/validations/checkout";
 import {
@@ -8,6 +8,9 @@ import {
   toReais,
   formatBrl,
 } from "@/lib/pricing";
+import { normalizeCouponCode } from "@/lib/coupons";
+import { SHIPPING_ZONES } from "@/config/shipping";
+import { getShippingZone } from "@/lib/shipping";
 import {
   OrderStatus,
   canTransition,
@@ -115,6 +118,41 @@ export class OutOfStockError extends Error {
   }
 }
 
+export class CouponOrderError extends Error {
+  constructor(
+    message: string,
+    public statusHttp: 400 | 409 = 400,
+    public title: string = "Cupom inválido"
+  ) {
+    super(message);
+    this.name = "CouponOrderError";
+  }
+}
+
+function resolveShippingZoneFromAddress(
+  deliveryMode: "entrega" | "retirada",
+  shippingAddress: string | null | undefined
+): {
+  shippingZoneLabel: string | null;
+  shippingEtaDays: { min: number; max: number } | null;
+} {
+  if (deliveryMode !== "entrega" || !shippingAddress) {
+    return { shippingZoneLabel: null, shippingEtaDays: null };
+  }
+  const match = shippingAddress.match(/CEP:\s*([0-9-]{8,9})/i);
+  const zone = match ? getShippingZone(match[1]) : null;
+  if (!zone) {
+    return { shippingZoneLabel: null, shippingEtaDays: null };
+  }
+  return {
+    shippingZoneLabel: SHIPPING_ZONES[zone].label,
+    shippingEtaDays: {
+      min: SHIPPING_ZONES[zone].etaMin,
+      max: SHIPPING_ZONES[zone].etaMax,
+    },
+  };
+}
+
 function buildSanitizedOrderResponse(
   existing: typeof orders.$inferSelect,
   items: Array<typeof orderItems.$inferSelect>
@@ -125,6 +163,9 @@ function buildSanitizedOrderResponse(
       : toCents(existing.total);
   const shippingCents = existing.shippingCents ?? 0;
   const discountCents = existing.discountCents ?? 0;
+  const couponCode = existing.couponCode ?? null;
+  const couponDiscountCents = existing.couponDiscountCents ?? 0;
+  const pixDiscountCents = Math.max(0, discountCents - couponDiscountCents);
   const totalCents =
     existing.totalCents != null ? existing.totalCents : toCents(existing.total);
   const deliveryMode =
@@ -135,6 +176,10 @@ function buildSanitizedOrderResponse(
       : "whatsapp";
   const shippingAddress =
     existing.shippingAddress || STORE_CONFIG.physicalStore.formattedAddress;
+  const { shippingZoneLabel, shippingEtaDays } = resolveShippingZoneFromAddress(
+    deliveryMode,
+    shippingAddress
+  );
 
   const whatsappText = buildOrderWhatsAppMessage({
     humanCode: existing.id,
@@ -147,6 +192,11 @@ function buildSanitizedOrderResponse(
     discountCents,
     shippingCents,
     totalCents,
+    couponCode,
+    couponDiscountCents,
+    pixDiscountCents,
+    shippingZoneLabel,
+    shippingEtaDays,
     items: items.map((i) => ({
       name: i.productName,
       quantity: i.quantity,
@@ -175,6 +225,11 @@ function buildSanitizedOrderResponse(
     subtotalCents,
     shippingCents,
     discountCents,
+    couponCode,
+    couponDiscountCents,
+    pixDiscountCents,
+    shippingZoneLabel,
+    shippingEtaDays,
     totalCents,
     whatsappUrl: buildWhatsAppLink(whatsappText),
     createdAt: existing.createdAt || new Date().toISOString(),
@@ -362,16 +417,86 @@ export async function createOrderTransaction(rawInput: unknown) {
         };
       });
 
+      const now = new Date();
+      let couponRow: typeof coupons.$inferSelect | null = null;
+
+      if (input.couponCode) {
+        const normalizedCouponCode = normalizeCouponCode(input.couponCode);
+        if (!normalizedCouponCode) {
+          throw new CouponOrderError("Cupom inválido ou expirado", 400);
+        }
+
+        const foundCoupons = await tx
+          .select()
+          .from(coupons)
+          .where(eq(coupons.code, normalizedCouponCode))
+          .limit(1);
+
+        if (foundCoupons.length === 0) {
+          throw new CouponOrderError("Cupom inválido ou expirado", 400);
+        }
+
+        couponRow = foundCoupons[0];
+        if (
+          couponRow.maxUses !== null &&
+          couponRow.usedCount >= couponRow.maxUses
+        ) {
+          throw new CouponOrderError(
+            "Este cupom acabou de esgotar",
+            409,
+            "Cupom esgotado"
+          );
+        }
+      }
+
       const quote = calculateOrderPricing({
         deliveryMode: input.deliveryMode,
         paymentMethod: input.paymentMethod,
+        cep: input.cep || null,
+        coupon: couponRow,
+        couponCodeInput: input.couponCode || null,
         items: pricingItems,
+        now,
       });
+
+      if (quote.couponError) {
+        throw new CouponOrderError(quote.couponError, 400);
+      }
+
+      if (input.deliveryMode === "entrega" && quote.shippingCents === null) {
+        throw new CouponOrderError(
+          "CEP não encontrado. Confira os números.",
+          400,
+          "CEP inválido"
+        );
+      }
+
+      if (couponRow) {
+        const couponUpdate = await tx
+          .update(coupons)
+          .set({ usedCount: sql`${coupons.usedCount} + 1` })
+          .where(
+            and(
+              eq(coupons.id, couponRow.id),
+              eq(coupons.active, 1),
+              sql`(${coupons.maxUses} IS NULL OR ${coupons.usedCount} < ${coupons.maxUses})`
+            )
+          );
+
+        if (couponUpdate.rowsAffected === 0) {
+          throw new CouponOrderError(
+            "Este cupom acabou de esgotar",
+            409,
+            "Cupom esgotado"
+          );
+        }
+      }
+
+      const finalShippingCents = quote.shippingCents ?? 0;
 
       // 4.5. Gerar identificadores
       const orderId = generateOrderHumanCode();
       const publicToken = generatePublicToken();
-      const now = new Date();
       const createdAt = now.toISOString();
 
       const expirationDate = new Date(
@@ -404,9 +529,11 @@ export async function createOrderTransaction(rawInput: unknown) {
         status: initialStatus,
         total: toReais(quote.totalCents), // Legado (real)
         subtotalCents: quote.subtotalCents,
-        shippingCents: quote.shippingCents,
+        shippingCents: finalShippingCents,
         discountCents: quote.discountCents,
         totalCents: quote.totalCents,
+        couponCode: quote.couponCode,
+        couponDiscountCents: quote.couponDiscountCents,
         deliveryMode: input.deliveryMode,
         paymentMethod: input.paymentMethod,
         shippingAddress: formattedShippingAddress,
@@ -463,8 +590,13 @@ export async function createOrderTransaction(rawInput: unknown) {
         paymentMethod: input.paymentMethod,
         subtotalCents: quote.subtotalCents,
         discountCents: quote.discountCents,
-        shippingCents: quote.shippingCents,
+        shippingCents: finalShippingCents,
         totalCents: quote.totalCents,
+        couponCode: quote.couponCode,
+        couponDiscountCents: quote.couponDiscountCents,
+        pixDiscountCents: quote.pixDiscountCents,
+        shippingZoneLabel: quote.shippingZoneLabel,
+        shippingEtaDays: quote.shippingEtaDays,
         items: quote.items,
         notes: input.notes,
         publicToken,
@@ -486,8 +618,13 @@ export async function createOrderTransaction(rawInput: unknown) {
           total: toReais(quote.totalCents),
           subtotal: toReais(quote.subtotalCents),
           subtotalCents: quote.subtotalCents,
-          shippingCents: quote.shippingCents,
+          shippingCents: finalShippingCents,
           discountCents: quote.discountCents,
+          couponCode: quote.couponCode,
+          couponDiscountCents: quote.couponDiscountCents,
+          pixDiscountCents: quote.pixDiscountCents,
+          shippingZoneLabel: quote.shippingZoneLabel,
+          shippingEtaDays: quote.shippingEtaDays,
           totalCents: quote.totalCents,
           whatsappUrl,
           createdAt,
@@ -505,6 +642,15 @@ export async function createOrderTransaction(rawInput: unknown) {
       order: transactionResult.order,
     };
   } catch (error) {
+    if (error instanceof CouponOrderError) {
+      return {
+        success: false as const,
+        statusHttp: error.statusHttp,
+        title: error.title,
+        errors: [error.message],
+      };
+    }
+
     if (error instanceof OutOfStockError) {
       return {
         success: false as const,

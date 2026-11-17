@@ -98,6 +98,8 @@ export default async function OrderTrackingPage({
     discountCents,
     shippingCents,
     totalCents,
+    couponCode: order.couponCode ?? null,
+    couponDiscountCents: order.couponDiscountCents ?? 0,
     items: order.items.map((i) => {
       const unitPriceCents =
         i.unitPriceCents != null ? i.unitPriceCents : toCents(i.unitPrice);

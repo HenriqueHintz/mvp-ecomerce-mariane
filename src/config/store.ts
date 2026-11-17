@@ -39,6 +39,11 @@ export interface WhatsAppOrderMessageParams {
   discountCents: number;
   shippingCents: number;
   totalCents: number;
+  couponCode?: string | null;
+  couponDiscountCents?: number;
+  pixDiscountCents?: number;
+  shippingZoneLabel?: string | null;
+  shippingEtaDays?: { min: number; max: number } | null;
   items: Array<{
     name: string;
     quantity: number;
@@ -81,13 +86,33 @@ export function buildOrderWhatsAppMessage(order: WhatsAppOrderMessageParams): st
     )}*\n`;
   });
 
+  const couponDiscountCents = order.couponDiscountCents ?? 0;
+  const pixDiscountCents =
+    order.pixDiscountCents !== undefined
+      ? order.pixDiscountCents
+      : Math.max(0, order.discountCents - couponDiscountCents);
+
   msg += `\n💰 *Subtotal:* ${formatBrl(order.subtotalCents)}`;
-  if (order.discountCents > 0) {
-    msg += `\n💎 *Desconto PIX:* - ${formatBrl(order.discountCents)}`;
+  if (order.couponCode && couponDiscountCents > 0) {
+    msg += `\n🏷️ *Cupom ${order.couponCode}:* −${formatBrl(couponDiscountCents)}`;
   }
-  msg += `\n🚚 *Frete:* ${
-    order.shippingCents === 0 ? "GRÁTIS 🎉" : formatBrl(order.shippingCents)
-  }`;
+  if (pixDiscountCents > 0) {
+    msg += `\n💎 *Desconto PIX:* - ${formatBrl(pixDiscountCents)}`;
+  }
+
+  const shippingValueLabel =
+    order.shippingCents === 0 ? "GRÁTIS 🎉" : formatBrl(order.shippingCents);
+
+  if (
+    order.deliveryMode === "entrega" &&
+    order.shippingZoneLabel &&
+    order.shippingEtaDays
+  ) {
+    msg += `\n🚚 *Frete (${order.shippingZoneLabel} · ${order.shippingEtaDays.min} a ${order.shippingEtaDays.max} dias úteis):* ${shippingValueLabel}`;
+  } else {
+    msg += `\n🚚 *Frete:* ${shippingValueLabel}`;
+  }
+
   msg += `\n✨ *Total a Pagar:* ${formatBrl(order.totalCents)}`;
 
   if (order.notes) {

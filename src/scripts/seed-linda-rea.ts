@@ -216,6 +216,42 @@ async function main() {
   }
 
   console.log(`\nCarga concluída com sucesso! ${inserted} produtos reais gravados no banco SQLite.`);
+
+  // 6. Garantir tabela coupons e cupom inicial BEMVINDA10
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS coupons (
+      id TEXT PRIMARY KEY NOT NULL,
+      code TEXT NOT NULL UNIQUE,
+      type TEXT NOT NULL,
+      value INTEGER NOT NULL,
+      min_subtotal_cents INTEGER NOT NULL DEFAULT 0,
+      starts_at INTEGER,
+      expires_at INTEGER,
+      max_uses INTEGER,
+      used_count INTEGER NOT NULL DEFAULT 0,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT
+    );
+  `);
+  await client.execute({
+    sql: `INSERT OR REPLACE INTO coupons (
+      id, code, type, value, min_subtotal_cents, starts_at, expires_at, max_uses, used_count, active, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      "coupon_bemvinda10",
+      "BEMVINDA10",
+      "percent",
+      10,
+      10000,
+      null,
+      null,
+      null,
+      0,
+      1,
+      new Date().toISOString(),
+    ],
+  });
+  console.log("Cupom inicial BEMVINDA10 cadastrado com sucesso.");
 }
 
 main().catch(console.error);

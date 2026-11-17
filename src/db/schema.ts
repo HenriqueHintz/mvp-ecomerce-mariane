@@ -71,6 +71,8 @@ export const orders = sqliteTable(
     shippingCents: integer("shipping_cents"),
     discountCents: integer("discount_cents"),
     totalCents: integer("total_cents"),
+    couponCode: text("coupon_code"),
+    couponDiscountCents: integer("coupon_discount_cents").default(0),
     deliveryMode: text("delivery_mode").default("entrega"), // 'entrega' | 'retirada'
     paymentMethod: text("payment_method"),
     shippingAddress: text("shipping_address"),
@@ -157,6 +159,26 @@ export const emailVerifications = sqliteTable(
   })
 );
 
+export const coupons = sqliteTable("coupons", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  type: text("type").$type<"percent" | "fixed" | "free_shipping">().notNull(),
+  value: integer("value").notNull(),
+  minSubtotalCents: integer("min_subtotal_cents").notNull().default(0),
+  startsAt: integer("starts_at"),
+  expiresAt: integer("expires_at"),
+  maxUses: integer("max_uses"),
+  usedCount: integer("used_count").notNull().default(0),
+  active: integer("active").notNull().default(1),
+  createdAt: text("created_at"),
+});
+
+export const rateLimits = sqliteTable("rate_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull().default(0),
+  windowStart: integer("window_start").notNull(),
+});
+
 export type Brand = typeof brands.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Product = typeof products.$inferSelect;
@@ -166,3 +188,5 @@ export type OrderItem = typeof orderItems.$inferSelect;
 export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect;
 export type PaymentWebhook = typeof paymentWebhooks.$inferSelect;
 export type EmailVerification = typeof emailVerifications.$inferSelect;
+export type Coupon = typeof coupons.$inferSelect;
+export type RateLimitRow = typeof rateLimits.$inferSelect;
