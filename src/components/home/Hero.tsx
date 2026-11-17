@@ -8,13 +8,13 @@ import {
   HERO_CONTENT,
   resolveHeroSlides,
   type ResolvedHeroSlide,
+  type HeroSlideProductRef,
 } from "@/data/hero-slides";
-import type { HeroCarouselProduct } from "@/data/hero-products";
 
 export { HeroScenes as HeroPanoramicBanner };
 
 export interface HeroProps {
-  products?: HeroCarouselProduct[];
+  products?: HeroSlideProductRef[];
 }
 
 declare global {
@@ -207,7 +207,7 @@ export default function Hero({ products }: HeroProps) {
         type="button"
         onClick={handlePrev}
         aria-label="Slide anterior"
-        className={`hero-arrow-btn group hidden md:flex absolute z-30 left-2.5 md:left-4 lg:left-6 top-[26%] md:top-1/2 -translate-y-1/2 w-11 h-11 md:w-12 md:h-12 rounded-full items-center justify-center backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500 focus-visible:ring-offset-2 ${
+        className={`hero-arrow left-2.5 md:left-4 lg:left-6 ${
           isDarkTone
             ? "bg-onyx-950/55 text-silk-50 border border-silk-50/25 hover:bg-marina-500 hover:border-marina-500 hover:text-white focus-visible:bg-marina-500 focus-visible:text-white"
             : "bg-white/75 text-onyx-950 border border-onyx-950/15 hover:bg-marina-500 hover:border-marina-500 hover:text-white focus-visible:bg-marina-500 focus-visible:text-white"
@@ -224,7 +224,7 @@ export default function Hero({ products }: HeroProps) {
         type="button"
         onClick={handleNext}
         aria-label="Próximo slide"
-        className={`hero-arrow-btn group hidden md:flex absolute z-30 right-2.5 md:right-4 lg:right-6 top-[26%] md:top-1/2 -translate-y-1/2 w-11 h-11 md:w-12 md:h-12 rounded-full items-center justify-center backdrop-blur-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500 focus-visible:ring-offset-2 ${
+        className={`hero-arrow right-2.5 md:right-4 lg:right-6 ${
           isDarkTone
             ? "bg-onyx-950/55 text-silk-50 border border-silk-50/25 hover:bg-marina-500 hover:border-marina-500 hover:text-white focus-visible:bg-marina-500 focus-visible:text-white"
             : "bg-white/75 text-onyx-950 border border-onyx-950/15 hover:bg-marina-500 hover:border-marina-500 hover:text-white focus-visible:bg-marina-500 focus-visible:text-white"
@@ -253,23 +253,13 @@ export default function Hero({ products }: HeroProps) {
           {/* 2. Slogan (h1: 21px suave no mobile, escala editorial no desktop) */}
           <h1
             data-fx="palavras"
-            className={`order-2 font-serif text-[21px] leading-[1.2] sm:text-[26px] md:text-[2.55rem] lg:text-[3rem] md:leading-[1.12] font-normal tracking-[-0.01em] mb-1.5 sm:mb-4 md:mb-7 max-w-[34ch] md:max-w-none transition-colors duration-500 ${
+            className={`fx-palavras hero-h1 ${
               entered ? "fx-em-cena" : ""
             } ${isDarkTone ? "text-silk-50/95" : "text-onyx-800 md:text-onyx-950"}`}
           >
             {SLOGAN_WORDS.map((word, idx) => (
               <React.Fragment key={idx}>
-                <span
-                  className="fx-palavra"
-                  style={
-                    {
-                      "--i": idx,
-                      transitionDelay: `${140 + idx * 55}ms`,
-                    } as React.CSSProperties
-                  }
-                >
-                  {word}
-                </span>
+                <span className="fx-palavra">{word}</span>
                 {idx < SLOGAN_WORDS.length - 1 ? " " : ""}
               </React.Fragment>
             ))}
@@ -290,10 +280,10 @@ export default function Hero({ products }: HeroProps) {
                   onClick={() => handleSelectSlide(idx)}
                   aria-label={`Ir para o slide ${idx + 1} de ${total}`}
                   aria-current={isActive ? "true" : undefined}
-                  className="group relative flex items-center justify-center min-w-[32px] md:min-w-[44px] min-h-[44px] px-1 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500 rounded-full"
+                  className="hero-dot-btn group"
                 >
                   <span
-                    className={`block rounded-full transition-all duration-500 ${
+                    className={`hero-dot-pill ${
                       isActive
                         ? isDarkTone
                           ? "w-5 md:w-9 h-[2px] md:h-[3px] bg-silk-50 shadow-[0_0_8px_rgba(117,6,106,0.8)]"
@@ -318,7 +308,7 @@ export default function Hero({ products }: HeroProps) {
           >
             <Link
               href={HERO_CONTENT.primaryCta.href}
-              className="w-auto inline-flex items-center justify-center min-h-[44px] md:min-h-[48px] px-7 py-2.5 md:py-3 rounded-full text-[15px] md:text-sm font-semibold tracking-wide bg-marina-600 md:bg-marina-500 text-white hover:bg-marina-700 md:hover:bg-marina-600 active:scale-[0.99] transition-all duration-300 shadow-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500 focus-visible:ring-offset-2"
+              className="hero-cta-primary"
             >
               {HERO_CONTENT.primaryCta.cleanLabel}
             </Link>
@@ -327,7 +317,7 @@ export default function Hero({ products }: HeroProps) {
               href={HERO_CONTENT.secondaryCta.href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`md:hidden inline-flex items-center justify-center min-h-[44px] text-sm font-medium underline underline-offset-4 transition-colors ${
+              className={`hero-cta-m-wa ${
                 isDarkTone ? "text-silk-50/90 hover:text-marina-200" : "text-marina-700 hover:text-marina-800"
               }`}
             >
@@ -338,7 +328,7 @@ export default function Hero({ products }: HeroProps) {
               href={HERO_CONTENT.secondaryCta.href}
               target="_blank"
               rel="noopener noreferrer"
-              className={`hidden md:inline-flex items-center justify-center min-h-[48px] px-6 py-3 rounded-full text-sm font-medium tracking-wide backdrop-blur-sm transition-all duration-500 active:scale-[0.99] whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-500 focus-visible:ring-offset-2 ${
+              className={`hero-cta-wa ${
                 isDarkTone
                   ? "border border-silk-50/65 bg-onyx-950/65 text-silk-50 hover:bg-marina-500 hover:border-marina-500 hover:text-white"
                   : "border border-marina-500/80 bg-white/80 text-marina-700 hover:bg-marina-500 hover:border-marina-500 hover:text-white"

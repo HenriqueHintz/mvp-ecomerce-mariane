@@ -39,6 +39,32 @@ async function verifyEdgeSessionToken(
   return diff === 0;
 }
 
+function prefersMarkdown(acceptHeader: string): boolean {
+  if (!acceptHeader || !acceptHeader.includes("text/markdown")) return false;
+  let mdQ = 0;
+  let htmlQ = 0;
+
+  for (const part of acceptHeader.split(",")) {
+    const segments = part.trim().split(";");
+    const mime = segments[0]?.trim().toLowerCase();
+    let q = 1;
+    for (const seg of segments.slice(1)) {
+      const m = /^q\s*=\s*([0-9.]+)$/i.exec(seg.trim());
+      if (m) {
+        const parsed = parseFloat(m[1]);
+        if (Number.isFinite(parsed)) q = parsed;
+      }
+    }
+    if (mime === "text/markdown") mdQ = Math.max(mdQ, q);
+    else if (mime === "text/html") htmlQ = Math.max(htmlQ, q);
+  }
+
+  return mdQ > 0 && mdQ >= htmlQ;
+}
+
+const VARY_HEADER =
+  "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch, Accept";
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -46,7 +72,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
     if (pathname === "/admin/login" || pathname.startsWith("/api/admin/auth")) {
       const res = NextResponse.next();
-      res.headers.set("Vary", "Accept");
+      res.headers.set("Vary", VARY_HEADER);
       return res;
     }
 
@@ -67,7 +93,7 @@ export async function middleware(request: NextRequest) {
             status: 401,
             headers: {
               "Content-Type": "application/problem+json; charset=utf-8",
-              "Vary": "Accept",
+              "Vary": VARY_HEADER,
             },
           }
         );
@@ -78,13 +104,13 @@ export async function middleware(request: NextRequest) {
     }
 
     const res = NextResponse.next();
-    res.headers.set("Vary", "Accept");
+    res.headers.set("Vary", VARY_HEADER);
     return res;
   }
 
   // 2. Negociação de Conteúdo Markdown (R1)
   const acceptHeader = request.headers.get("accept") || "";
-  const isMarkdownRequest = acceptHeader.includes("text/markdown");
+  const isMarkdownRequest = prefersMarkdown(acceptHeader);
 
   // Exclusão expressa de rotas privadas/internas e arquivos estáticos
   const isExcludedRoute =
@@ -100,14 +126,31 @@ export async function middleware(request: NextRequest) {
       `/api/markdown?path=${encodeURIComponent(pathname)}`,
       request.url
     );
-    const rewriteResponse = NextResponse.rewrite(markdownApiUrl);
-    rewriteResponse.headers.set("Vary", "Accept");
-    return rewriteResponse;
+    try {
+      const mdRes = await fetch(markdownApiUrl, {
+        headers: { "x-internal-markdown": "1" },
+        cache: "no-store",
+      });
+      const body = await mdRes.text();
+      return new NextResponse(body, {
+        status: mdRes.status,
+        headers: {
+          "Content-Type":
+            mdRes.headers.get("content-type") || "text/markdown; charset=utf-8",
+          "Vary": VARY_HEADER,
+          "Cache-Control": "public, max-age=0, must-revalidate",
+        },
+      });
+    } catch {
+      const rewriteResponse = NextResponse.rewrite(markdownApiUrl);
+      rewriteResponse.headers.set("Vary", VARY_HEADER);
+      return rewriteResponse;
+    }
   }
 
-  // 3. Respostas HTML / padrão incluem header Vary: Accept
+  // 3. Respostas HTML / padrão incluem tokens RSC + Accept no header Vary
   const response = NextResponse.next();
-  response.headers.set("Vary", "Accept");
+  response.headers.set("Vary", VARY_HEADER);
   return response;
 }
 

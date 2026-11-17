@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Search, Home, ShoppingBag, MessageCircle, ArrowLeft } from "lucide-react";
+import { SvgIcon } from "@/components/ui/SvgIcon";
 import { Logo } from "@/components/Logo";
 
 export default function NotFound() {
@@ -36,7 +36,7 @@ export default function NotFound() {
             aria-label="Buscar no catálogo"
             className="w-full pl-10 pr-24 py-3 rounded-2xl border border-silk-300 text-sm focus:outline-none focus:ring-2 focus:ring-marina-600 focus:border-transparent bg-silk-50/60"
           />
-          <Search className="w-4 h-4 text-onyx-400 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true" />
+          <SvgIcon name="search" className="w-4 h-4 text-onyx-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <button
             type="submit"
             className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 py-1.5 rounded-xl bg-marina-700 text-white text-xs font-semibold hover:bg-marina-800 transition-colors"
@@ -55,21 +55,21 @@ export default function NotFound() {
               href="/"
               className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-silk-200 bg-silk-50 hover:bg-white text-onyx-900 transition-colors"
             >
-              <Home className="w-3.5 h-3.5 text-marina-700" />
+              <SvgIcon name="home" className="w-3.5 h-3.5 text-marina-700" />
               <span>Início</span>
             </Link>
             <Link
               href="/produtos"
               className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-silk-200 bg-silk-50 hover:bg-white text-onyx-900 transition-colors"
             >
-              <ShoppingBag className="w-3.5 h-3.5 text-marina-700" />
+              <SvgIcon name="shopping-bag" className="w-3.5 h-3.5 text-marina-700" />
               <span>Produtos</span>
             </Link>
             <Link
               href="/atendimento"
               className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-silk-200 bg-silk-50 hover:bg-white text-onyx-900 transition-colors"
             >
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-dark" />
+              <SvgIcon name="message-circle" className="w-3.5 h-3.5 text-emerald-dark" />
               <span>Atendimento</span>
             </Link>
           </div>

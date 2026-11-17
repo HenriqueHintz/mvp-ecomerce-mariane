@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 
 export type LogoVariant = "badge" | "horizontal" | "icon";
 export type LogoSize = "sm" | "md" | "lg" | "xl";
@@ -68,13 +67,12 @@ export function Logo({
   if (variant === "badge") {
     return (
       <div className={`relative inline-flex items-center justify-center shrink-0 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-shadow ${sizeConfig.className} ${className}`}>
-        <Image
+        <img
           src="/logo-mariane-banner.png"
           alt={alt}
           width={sizeConfig.w * 3}
           height={sizeConfig.h * 3}
-          sizes="(max-width: 767px) 210px, 240px"
-          priority
+          decoding="async"
           className="h-full w-auto object-contain select-none"
         />
       </div>
@@ -85,12 +83,12 @@ export function Logo({
   if (variant === "icon") {
     return (
       <div className={`relative inline-flex items-center justify-center shrink-0 ${sizeConfig.className} ${className}`}>
-        <Image
+        <img
           src="/icon.svg"
           alt={alt}
           width={sizeConfig.h * 2}
           height={sizeConfig.h * 2}
-          priority
+          decoding="async"
           className="h-full w-auto object-contain select-none"
         />
       </div>
@@ -102,13 +100,12 @@ export function Logo({
 
   return (
     <div className={`relative inline-flex items-center shrink-0 ${sizeConfig.className} ${className}`}>
-      <Image
+      <img
         src={logoSrc}
         alt={alt}
         width={sizeConfig.w * 2}
         height={sizeConfig.h * 2}
-        sizes="(max-width: 767px) 170px, 240px"
-        priority
+        decoding="async"
         className="h-full w-auto object-contain select-none transform hover:scale-[1.02] transition-transform duration-200"
       />
     </div>

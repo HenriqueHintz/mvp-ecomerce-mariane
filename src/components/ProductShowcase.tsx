@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import ProductCard, { type ProductCardProps } from "@/components/ProductCard";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { SvgIcon } from "@/components/ui/SvgIcon";
 
 export interface ProductShowcaseProps {
   products: ProductCardProps[];
@@ -120,10 +120,6 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
   const PAGE_SIZE = 4;
   const totalDesktopPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
   const safePage = Math.min(desktopPage, totalDesktopPages - 1);
-  const desktopItems = filteredProducts.slice(
-    safePage * PAGE_SIZE,
-    safePage * PAGE_SIZE + PAGE_SIZE
-  );
 
   const handleMobileScroll = () => {
     const el = railRef.current;
@@ -168,12 +164,17 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Cabeçalho da seção */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4 sm:mb-8">
-          <h2
-            id="vitrine-titulo"
-            className="font-serif text-2xl font-normal sm:text-4xl sm:font-bold text-onyx-950 tracking-tight leading-snug"
-          >
-            Mais Vendidos e Destaques
-          </h2>
+          <div>
+            <h2
+              id="vitrine-titulo"
+              className="font-serif text-2xl font-normal sm:text-4xl sm:font-bold text-onyx-950 tracking-tight leading-snug"
+            >
+              Mais Vendidos e Destaques
+            </h2>
+            <p className="sec-sub">
+              Seleção curada de cronograma capilar, máscaras, óleos e perfumaria Madressenza originais com lacre de fábrica, 5% OFF no PIX, até 10x sem juros no cartão e frete grátis acima de R$ 199 para todo o Brasil.
+            </p>
+          </div>
 
           <div className="hidden md:flex items-center gap-4">
             {totalDesktopPages > 1 && (
@@ -183,9 +184,9 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
                   onClick={() => setDesktopPage((p) => Math.max(0, p - 1))}
                   disabled={safePage === 0}
                   aria-label="Produtos anteriores"
-                  className="min-h-[44px] min-w-[44px] rounded-full border border-silk-200 bg-white text-onyx-900 hover:border-marina-400 hover:text-marina-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
+                  className="v-page-btn"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <SvgIcon name="chevron-left" className="w-4 h-4" />
                 </button>
                 <span className="text-xs font-medium text-onyx-600 tabular-nums px-1">
                   {safePage + 1} / {totalDesktopPages}
@@ -197,9 +198,9 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
                   }
                   disabled={safePage >= totalDesktopPages - 1}
                   aria-label="Próximos produtos"
-                  className="min-h-[44px] min-w-[44px] rounded-full border border-silk-200 bg-white text-onyx-900 hover:border-marina-400 hover:text-marina-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
+                  className="v-page-btn"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <SvgIcon name="chevron-right" className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -209,7 +210,7 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
               className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-marina-700 hover:text-marina-900 transition-colors min-h-[44px] px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded-lg"
             >
               <span>Ver Catálogo Completo</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <SvgIcon name="arrow-right" className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
@@ -219,7 +220,7 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
           <div
             role="tablist"
             aria-label="Filtrar produtos da vitrine"
-            className="bs-rail -mx-4 px-4 pr-10 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto pb-1.5"
+            className="v-tab-scroll"
           >
             {tabs.map((tab, idx) => {
               const selected = activeTab === tab.id;
@@ -234,11 +235,7 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
                   tabIndex={selected ? 0 : -1}
                   onClick={() => handleTabChange(tab.id)}
                   onKeyDown={(e) => handleTabKeyDown(e, idx)}
-                  className={`shrink-0 min-h-[44px] px-4 rounded-full text-xs sm:text-[13px] font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 ${
-                    selected
-                      ? "bg-marina-700 text-white shadow-xs"
-                      : "bg-white text-onyx-800 border border-silk-200 hover:border-marina-400 hover:text-marina-800"
-                  }`}
+                  className={`v-tab ${selected ? "v-tab-on" : "v-tab-off"}`}
                 >
                   {tab.label}
                 </button>
@@ -251,84 +248,72 @@ export default function ProductShowcase({ products }: ProductShowcaseProps) {
           />
         </div>
 
-        {/* Painel da vitrine */}
+        {/* Painel único responsivo: trilho scroll-snap no mobile e grade 3/4 cols no tablet/desktop */}
         <div
           id="vitrine-painel"
           role="tabpanel"
           aria-labelledby={`vitrine-tab-${activeTab}`}
         >
-          {/* Mobile: Carrossel horizontal com scroll-snap (~78% do card visível, mostrando o próximo) */}
-          <div className="md:hidden">
-            <div
-              ref={railRef}
-              onScroll={handleMobileScroll}
-              role="region"
-              aria-roledescription="carousel"
-              aria-label="Produtos em destaque"
-              className="bs-rail -mx-4 px-4 flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-pl-4 pb-2"
-            >
-              {filteredProducts.map((product, idx) => (
+          <div
+            ref={railRef}
+            onScroll={handleMobileScroll}
+            role="region"
+            aria-roledescription="carousel"
+            aria-label="Produtos em destaque"
+            className="v-rail snap-x snap-mandatory md:grid-cols-3 lg:grid-cols-4"
+          >
+            {filteredProducts.map((product, idx) => {
+              const desktopStart = safePage * PAGE_SIZE;
+              const desktopEnd = desktopStart + PAGE_SIZE;
+              const isDesktopVisible = idx >= desktopStart && idx < desktopEnd;
+              return (
                 <div
                   key={product.id}
-                  className="w-[78%] shrink-0 snap-start vitrine-item"
+                  className={`w-[78%] shrink-0 snap-start vitrine-item md:w-auto ${
+                    isDesktopVisible ? "" : "md:hidden"
+                  }`}
                   style={{ ["--vi" as string]: Math.min(idx, 5) }}
                 >
                   <ProductCard {...product} />
                 </div>
-              ))}
-            </div>
-
-            {/* Indicadores de posição do carrossel mobile */}
-            {filteredProducts.length > 1 && (
-              <div
-                className="mt-3 flex items-center justify-center gap-1"
-                aria-label="Indicadores de posição da vitrine"
-              >
-                {filteredProducts.map((product, idx) => {
-                  const active = idx === mobileIndex;
-                  return (
-                    <button
-                      key={product.id}
-                      type="button"
-                      onClick={() => scrollToMobileIndex(idx)}
-                      aria-label={`Ir para produto ${idx + 1} de ${filteredProducts.length}`}
-                      aria-current={active ? "true" : undefined}
-                      className="min-h-[44px] min-w-[28px] flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 rounded-full"
-                    >
-                      <span
-                        className={`block h-2 rounded-full transition-all duration-300 motion-reduce:transition-none ${
-                          active ? "w-6 bg-marina-700" : "w-2 bg-silk-300"
-                        }`}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* CTA mobile no fim da seção */}
-            <div className="mt-3">
-              <Link
-                href={catalogHref}
-                className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full border border-marina-700/30 bg-white px-5 py-3 text-xs font-bold uppercase tracking-wider text-marina-700 hover:bg-marina-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
-              >
-                <span>Ver Catálogo Completo</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
+              );
+            })}
           </div>
 
-          {/* Desktop / Tablet: Grade responsiva (3 cols md, 4 cols lg) */}
-          <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-6">
-            {desktopItems.map((product, idx) => (
-              <div
-                key={product.id}
-                className="vitrine-item"
-                style={{ ["--vi" as string]: idx }}
-              >
-                <ProductCard {...product} />
-              </div>
-            ))}
+          {/* Indicadores de posição do carrossel mobile */}
+          {filteredProducts.length > 1 && (
+            <div
+              className="md:hidden mt-3 flex flex-wrap items-center justify-center gap-0.5"
+              aria-label="Indicadores de posição da vitrine"
+            >
+              {filteredProducts.map((product, idx) => {
+                const active = idx === mobileIndex;
+                return (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => scrollToMobileIndex(idx)}
+                    aria-label={`Ir para produto ${idx + 1} de ${filteredProducts.length}`}
+                    aria-current={active ? "true" : undefined}
+                    className="v-dot-btn"
+                  >
+                    <span
+                      className={`v-dot-pill ${
+                        active ? "w-6 bg-marina-700" : "w-2 bg-silk-300"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* CTA mobile no fim da seção */}
+          <div className="md:hidden mt-3">
+            <Link href={catalogHref} className="v-mobile-cta">
+              <span>Ver Catálogo Completo</span>
+              <SvgIcon name="arrow-right" className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </div>

@@ -76,10 +76,9 @@ registerCheck("LIVE-1", "GET / with Accept: text/markdown returns 200, markdown 
   );
 
   const vary = res.headers.get("vary") || "";
-  const isRewritten = res.headers.has("x-middleware-rewrite");
   assert(
-    vary.toLowerCase().includes("accept") || isRewritten,
-    `Expected Vary header to include 'Accept' or request to be rewritten by middleware, got: ${vary}`
+    vary.toLowerCase().includes("accept"),
+    `Expected Vary header to include 'Accept', got: ${vary}`
   );
 
   const text = await res.text();
@@ -107,10 +106,9 @@ registerCheck("LIVE-2", "GET / with Accept: text/html returns 200, HTML content 
   );
 
   const vary = res.headers.get("vary") || "";
-  const isRewritten = res.headers.has("x-middleware-rewrite");
   assert(
-    vary.toLowerCase().includes("accept") || isRewritten,
-    `Expected Vary header to include 'Accept' or request to be rewritten by middleware, got: ${vary}`
+    vary.toLowerCase().includes("accept"),
+    `Expected Vary header to include 'Accept', got: ${vary}`
   );
 
   const text = await res.text();
@@ -310,6 +308,36 @@ registerCheck("LIVE-9", "GET / HTML contains valid JSON-LD @graph with Store, Or
   assert(foundStore, "Expected JSON-LD Store / HealthAndBeautyBusiness schema on Home");
   assert(foundOrg, "Expected JSON-LD Organization schema on Home");
   assert(foundAddress, "Expected JSON-LD PostalAddress with Lages on Home");
+});
+
+// --------------------------------------------------------------------------
+// 10. Dynamic Not-Found Status (404 on invalid product & category slugs)
+// --------------------------------------------------------------------------
+registerCheck("LIVE-10", "GET /produto/slug-inexistente & /categoria/slug-inexistente return real HTTP 404", async () => {
+  for (const p of ["/produto/slug-inexistente-xyz", "/categoria/slug-inexistente-xyz"]) {
+    const res = await fetch(`${targetUrl}${p}`, {
+      headers: { Accept: "text/html" },
+    });
+    assert(res.status === 404, `Expected HTTP 404 for ${p}, got ${res.status}`);
+  }
+});
+
+// --------------------------------------------------------------------------
+// 11. Home Raw HTML Content Ratio (>= 5% and >= 500 text chars without JS)
+// --------------------------------------------------------------------------
+registerCheck("LIVE-11", "Home raw HTML content-to-markup ratio >= 5% without JS", async () => {
+  const res = await fetch(`${targetUrl}/`, { headers: { Accept: "text/html" } });
+  const raw = await res.text();
+  const noNonContent = raw.replace(/<(script|style|svg)[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  const text = noNonContent
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const rawBytes = Buffer.byteLength(raw, "utf-8");
+  const textBytes = Buffer.byteLength(text, "utf-8");
+  const ratio = (textBytes / rawBytes) * 100;
+  assert(text.length >= 500, `Expected >= 500 visible text chars, got ${text.length}`);
+  assert(ratio >= 5.0, `Expected content ratio >= 5.0%, got ${ratio.toFixed(2)}% (${textBytes}/${rawBytes} bytes)`);
 });
 
 // --------------------------------------------------------------------------

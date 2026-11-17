@@ -40,12 +40,12 @@ export function Price({
       ? "text-2xl sm:text-3xl font-bold text-onyx-950 tabular-nums tracking-tight"
       : size === "sm"
       ? "text-lg font-bold text-onyx-950 tabular-nums tracking-tight"
-      : "text-lg sm:text-[1.3125rem] font-bold text-onyx-950 tabular-nums tracking-tight";
+      : "price-val";
 
   return (
-    <div className={`font-sans tabular-nums space-y-1 ${className}`.trim()}>
+    <div className={className ? `price-wrap ${className}` : "price-wrap"}>
       {/* Nível 1: Preço riscado (altura reservada para alinhar cards) + Preço final em destaque */}
-      <div className="min-h-[1.125rem] flex items-center">
+      <div className="price-strike-row">
         {hasRealPromo && (
           <span className="text-xs text-onyx-600 line-through font-normal">
             {formatBRL(price)}
@@ -58,15 +58,15 @@ export function Price({
 
       {/* Nível 2: PIX em verde-esmeralda */}
       {showPix && (
-        <p className="text-[13px] leading-snug text-emerald-800 font-semibold">
-          {formatBRL(pixValue)} no PIX ({pixDiscountPercent}% OFF)
+        <p className="price-pix">
+          {`${formatBRL(pixValue)} no PIX (${pixDiscountPercent}% OFF)`}
         </p>
       )}
 
       {/* Nível 3: Parcelamento discreto */}
       {showInstallments && (
-        <p className="text-xs leading-snug text-onyx-600 font-normal">
-          ou {installments}x de {formatBRL(instVal)} sem juros
+        <p className="price-inst">
+          {`ou ${installments}x de ${formatBRL(instVal)} sem juros`}
         </p>
       )}
     </div>

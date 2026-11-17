@@ -6,9 +6,8 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCartState, useCartUI } from "@/context/CartContext";
 import Logo from "@/components/Logo";
+import { SvgIcon } from "@/components/ui/SvgIcon";
 import {
-  ShoppingBag,
-  MessageCircle,
   Menu,
   X,
   ChevronRight,
@@ -276,26 +275,25 @@ export default function Header() {
                 <span className="block font-extrabold text-sm sm:text-[15px] xl:text-base text-white tracking-tight">
                   Revendedora Oficial
                 </span>
-                <span className="block font-black text-sm sm:text-[15px] xl:text-base text-white tracking-tight">
+                <span className="hd-cred-t">
                   Madressenza
                 </span>
-                <span className="sr-only">Revendedora Oficial Madressenza</span>
               </div>
 
               <div className="leading-tight text-center lg:text-left text-white">
-                <span className="block font-black text-sm sm:text-[15px] xl:text-base text-white tracking-tight">
+                <span className="hd-cred-t">
                   Frete Grátis
                 </span>
-                <span className="block font-bold text-xs sm:text-[13px] xl:text-sm text-white tracking-tight">
+                <span className="hd-cred-s">
                   Acima de R$ 199
                 </span>
               </div>
 
               <div className="leading-tight text-center lg:text-left text-white">
-                <span className="block font-black text-sm sm:text-[15px] xl:text-base text-white tracking-tight">
+                <span className="hd-cred-t">
                   5% OFF no PIX
                 </span>
-                <span className="block font-bold text-xs sm:text-[13px] xl:text-sm text-white tracking-tight">
+                <span className="hd-cred-s">
                   Ou até 10x sem juros
                 </span>
               </div>
@@ -309,7 +307,7 @@ export default function Header() {
                 aria-label="Buscar produtos"
                 className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-onyx-900 hover:bg-silk-100 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600"
               >
-                <Search className="w-5 h-5" aria-hidden="true" />
+                <SvgIcon name="search" className="w-5 h-5" />
               </Link>
 
               {/* WhatsApp direct customer support link (Desktop) */}
@@ -317,9 +315,9 @@ export default function Header() {
                 href="https://wa.me/5549991251617?text=Ol%C3%A1%2C%20Mariane%20Cosm%C3%A9ticos!%20Gostaria%20de%20atendimento%20personalizado."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden sm:inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/25 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 shadow-xs backdrop-blur-xs"
+                className="hd-act-wa"
               >
-                <MessageCircle className="w-4 h-4 text-emerald-300" />
+                <SvgIcon name="message-circle" className="w-4 h-4 text-emerald-300" />
                 <span>Atendimento WhatsApp</span>
               </a>
 
@@ -330,10 +328,10 @@ export default function Header() {
                 onClick={handleOpenCart}
                 onMouseEnter={prefetchCartDrawer}
                 onFocus={prefetchCartDrawer}
-                className="relative min-w-[44px] min-h-[44px] -mr-1 md:mr-0 md:p-2.5 flex items-center justify-center text-onyx-900 md:text-white hover:bg-silk-100 md:hover:text-white/80 rounded-full md:hover:bg-white/10 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 md:focus-visible:ring-white/40 cursor-pointer"
+                className="hd-act-cart"
                 aria-label="Abrir sacola de compras"
               >
-                <ShoppingBag className="w-6 h-6" aria-hidden="true" />
+                <SvgIcon name="shopping-bag" className="w-6 h-6" />
                 {totalItems > 0 && (
                   <span
                     className={`absolute top-1 right-1 bg-marina-600 text-white md:bg-white md:text-[#7b2cbf] text-xs font-bold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center border-2 border-white md:border-[#7b2cbf] shadow-sm tabular-nums transition-transform duration-200 motion-reduce:transition-none ${
@@ -356,11 +354,11 @@ export default function Header() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`py-1 block relative group transition-colors uppercase tracking-wider ${
+                    className={
                       link.isHighlight
-                        ? "text-[#7b2cbf] font-bold bg-white px-3.5 py-1 rounded-full shadow-xs hover:bg-white/90"
-                        : "hover:text-white"
-                    }`}
+                        ? "block text-[#7b2cbf] font-bold bg-white px-3.5 py-1 rounded-full shadow-sm hover:bg-white/90 uppercase tracking-wider transition-colors"
+                        : "hd-nav-link group"
+                    }
                   >
                     {link.label}
                     {!link.isHighlight && (

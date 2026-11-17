@@ -166,20 +166,26 @@ export const HERO_SLIDES: HeroSlideConfig[] = [
   },
 ];
 
+export interface HeroSlideProductRef {
+  id: string;
+  name: string;
+  brand?: string;
+  href?: string;
+  slug?: string;
+}
+
 /**
  * Resolve dinamicamente nome, marca, link (/produto/[slug]) e alt descritivo
  * de cada slide a partir dos produtos reais do catálogo.
  */
 export function resolveHeroSlides(
-  catalogProducts?: HeroCarouselProduct[]
+  catalogProducts?: HeroSlideProductRef[]
 ): ResolvedHeroSlide[] {
-  const catalog =
-    catalogProducts && catalogProducts.length > 0
-      ? catalogProducts
-      : getDefaultHeroCarouselProducts();
   const defaults = getDefaultHeroCarouselProducts();
+  const catalog =
+    catalogProducts && catalogProducts.length > 0 ? catalogProducts : defaults;
 
-  const byId = new Map<string, HeroCarouselProduct>();
+  const byId = new Map<string, HeroSlideProductRef>();
   for (const item of defaults) {
     byId.set(item.id, item);
   }
@@ -191,7 +197,8 @@ export function resolveHeroSlides(
     const product = byId.get(slide.productId);
     const productName = product?.name ?? slide.productId;
     const productBrand = product?.brand ?? "Mariane Cosméticos";
-    const productHref = product?.href ?? "/produtos";
+    const productHref =
+      product?.href ?? (product?.slug ? `/produto/${product.slug}` : "/produtos");
     const alt = `${productName} (${productBrand}) ${slide.sceneDescription}`;
 
     return {

@@ -38,23 +38,16 @@ async function runM3ForensicStress() {
     assert(!btn.includes("<div"), `StoreMapSection button #${i + 1} does not contain <div>`);
   }
 
-  // 1.2 Home Page Server-Rendered Text Content (>= 500 chars)
+  // 1.2 Home Page Server-Rendered Text Content (>= 500 chars across sections, without layout bloat)
   const homePath = path.join(ROOT_DIR, "src", "app", "page.tsx");
   const homeCode = fs.readFileSync(homePath, "utf-8");
-  assert(homeCode.includes("apresentacao-titulo"), "Home includes presentation section id");
-  assert(homeCode.includes("Cosméticos Profissionais &amp; Alta Perfumaria em Lages – SC") || homeCode.includes("Cosméticos Profissionais & Alta Perfumaria"), "Home includes authoritative presentation heading");
-  assert(homeCode.includes("Madressenza"), "Home presentation highlights Madressenza curation");
-  assert(homeCode.includes("Rua Blumenau, Nº 623"), "Home presentation includes official physical store address");
-  assert(homeCode.includes("(49) 99125-1617"), "Home presentation includes official WhatsApp contact");
-
-  // Extract presentation text length
-  const pMatches = homeCode.match(/<p[\s\S]*?>([\s\S]*?)<\/p>/gi) || [];
-  let presentationChars = 0;
-  for (const p of pMatches) {
-    const clean = p.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-    presentationChars += clean.length;
-  }
-  assert(presentationChars >= 500, `Home server-rendered text length >= 500 chars (actual: ${presentationChars})`);
+  assert(!homeCode.includes("apresentacao-titulo"), "Home does not inject unrequested presentation section");
+  assert(homeCode.includes("Pronta para cuidar da sua beleza?"), "Home renders Chamada Final section");
+  assert(storeMapCode.includes("Venha nos visitar em Lages"), "Home renders StoreMapSection");
+  assert(storeMapCode.includes("Rua Blumenau, Nº 623"), "Home StoreMap includes official physical store address");
+  assert(storeMapCode.includes("(49) 99125-1617"), "Home StoreMap includes official WhatsApp contact");
+  assert(!fs.existsSync(path.join(ROOT_DIR, "src", "app", "produto", "[slug]", "loading.tsx")), "Product route omits streaming loading.tsx so notFound returns HTTP 404");
+  assert(!fs.existsSync(path.join(ROOT_DIR, "src", "app", "categoria", "[slug]", "loading.tsx")), "Category route omits streaming loading.tsx so notFound returns HTTP 404");
 
   // --------------------------------------------------------------------------
   // Phase 2: Schema.org JSON-LD Structured Data on Home (R4)

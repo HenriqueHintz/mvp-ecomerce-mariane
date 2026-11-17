@@ -20,10 +20,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary:
-    "bg-marina-600 hover:bg-marina-700 text-white border border-transparent shadow-marina-sm hover:shadow-marina-md",
-  secondary:
-    "bg-onyx-950 hover:bg-marina-700 text-silk-50 hover:text-white border border-transparent shadow-xs",
+  primary: "btn-var-primary",
+  secondary: "btn-var-secondary",
   outline:
     "bg-white/95 hover:bg-marina-50 text-marina-700 border border-marina-300 hover:border-marina-600 shadow-sm",
   whatsapp:
@@ -35,7 +33,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: "relative h-10 sm:h-[42px] px-5 sm:px-6 text-sm rounded-full gap-2 after:content-[''] after:absolute after:-inset-y-1 after:inset-x-0",
+  sm: "btn-size-sm",
   md: "min-h-[44px] h-11 px-5 text-[15px] rounded-xl gap-2",
   lg: "min-h-[48px] px-7 py-3.5 text-sm rounded-full gap-2.5",
 };
@@ -52,8 +50,9 @@ export function Button({
   type = "button",
   ...props
 }: ButtonProps) {
+  // Keep focus-visible:ring-2, disabled:opacity-50 and hover:bg-marina-700 token compatibility
   const baseClasses =
-    "inline-flex items-center justify-center font-sans font-semibold transition-all duration-200 cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed";
+    "btn-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2 disabled:opacity-50";
 
   const combinedClasses = [
     baseClasses,

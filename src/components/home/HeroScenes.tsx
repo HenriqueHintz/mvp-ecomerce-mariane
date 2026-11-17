@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { getImageProps } from "next/image";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import type { ResolvedHeroSlide } from "@/data/hero-slides";
 
@@ -23,32 +22,6 @@ interface ScenePictureProps {
 }
 
 function ScenePicture({ slide, isFirstSlide, eagerLoad }: ScenePictureProps) {
-  const common = {
-    alt: slide.alt,
-    sizes: "100vw",
-    quality: 84,
-  };
-
-  const {
-    props: { srcSet: mobileSrcSet },
-  } = getImageProps({
-    ...common,
-    width: 1080,
-    height: 1350,
-    src: slide.mobile,
-    priority: isFirstSlide,
-  });
-
-  const {
-    props: { srcSet: desktopSrcSet, src: desktopSrc, ...restDesktop },
-  } = getImageProps({
-    ...common,
-    width: 2400,
-    height: 1030,
-    src: slide.desktop,
-    priority: isFirstSlide,
-  });
-
   const focalVars = {
     "--fp-desktop": slide.focalPoint.desktop,
     "--fp-mobile": slide.focalPoint.mobile,
@@ -56,12 +29,12 @@ function ScenePicture({ slide, isFirstSlide, eagerLoad }: ScenePictureProps) {
 
   return (
     <picture className="block w-full h-full select-none pointer-events-none">
-      <source media="(max-width: 767px)" srcSet={mobileSrcSet} sizes="100vw" />
-      <source media="(min-width: 768px)" srcSet={desktopSrcSet} sizes="100vw" />
+      <source media="(max-width: 767px)" srcSet={slide.mobile} />
       <img
-        {...restDesktop}
-        src={desktopSrc}
+        src={slide.desktop}
         alt={slide.alt}
+        width={2400}
+        height={1030}
         loading={isFirstSlide || eagerLoad ? "eager" : "lazy"}
         fetchPriority={isFirstSlide ? "high" : "auto"}
         decoding={isFirstSlide ? "sync" : "async"}
@@ -80,6 +53,9 @@ export default function HeroScenes({
   isInitialLoad,
   parallaxOffset,
 }: HeroScenesProps) {
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => setHasMounted(true), []);
+
   const total = slides.length;
   const activeSlide = slides[activeIndex] ?? slides[0];
   const nextIndex = (activeIndex + 1) % total;
@@ -94,11 +70,11 @@ export default function HeroScenes({
       className="absolute inset-0 overflow-hidden pointer-events-none"
       style={parallaxStyle}
     >
-      {/* Camadas de Cenas (Slide Anterior em Saída, Slide Ativo e Preload do Próximo Slide) */}
+      {/* Camadas de Cenas (Slide Anterior em Saída, Slide Ativo e Preload pós-mount do Próximo Slide) */}
       {slides.map((slide, idx) => {
         const isActive = idx === activeIndex;
         const isExiting = prevIndex !== null && idx === prevIndex && idx !== activeIndex;
-        const isNextPreload = idx === nextIndex && !isActive && !isExiting;
+        const isNextPreload = hasMounted && idx === nextIndex && !isActive && !isExiting;
 
         if (!isActive && !isExiting && !isNextPreload) {
           return null;

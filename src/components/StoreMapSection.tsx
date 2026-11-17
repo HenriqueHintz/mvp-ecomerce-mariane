@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  MapPin,
-  Clock,
-  Phone,
-  Navigation,
-  ExternalLink,
-  Copy,
-  Check,
-} from "lucide-react";
+import { SvgIcon } from "@/components/ui/SvgIcon";
 
 const STORE_ADDRESS_FULL = "Rua Blumenau, Nº 623, Lages - SC, CEP 88505-300";
 
@@ -81,12 +73,17 @@ export default function StoreMapSection() {
           {/* Coluna 1: Informações e Ações */}
           <div className="order-1 lg:col-span-6 p-4 sm:p-8 lg:p-10 flex flex-col justify-between gap-4 sm:gap-6 bg-gradient-to-b from-white via-silk-50/40 to-marina-50/25">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2
-                id="loja-fisica-titulo"
-                className="font-serif text-2xl font-normal sm:text-3xl sm:font-bold text-onyx-950 tracking-tight leading-snug [word-spacing:0.04em]"
-              >
-                Venha nos visitar em Lages
-              </h2>
+              <div>
+                <h2
+                  id="loja-fisica-titulo"
+                  className="font-serif text-2xl font-normal sm:text-3xl sm:font-bold text-onyx-950 tracking-tight leading-snug [word-spacing:0.04em]"
+                >
+                  Venha nos visitar em Lages
+                </h2>
+                <p className="sec-sub">
+                  Conheça pessoalmente nossa perfumaria de ambiente Madressenza e linhas profissionais de salão na Rua Blumenau, 623 (São Cristóvão, Lages – SC). Atendimento consultivo presencial ou via WhatsApp, com procedência garantida e retirada gratuita na loja.
+                </p>
+              </div>
               {isOpenNow !== null && (
                 <span
                   className={`md:hidden inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
@@ -109,13 +106,13 @@ export default function StoreMapSection() {
             {/* Dados Práticos de Localização com divisórias sutis */}
             <div className="divide-y divide-silk-200/80 border-t border-b border-silk-200/80">
               {/* Endereço (com ação de cópia acessível e sem elementos de bloco/heading dentro de button) */}
-              <div className="grid grid-cols-[40px_1fr] items-start gap-3.5 py-3.5 sm:py-4">
-                <div className="w-10 h-10 bg-marina-100 text-marina-700 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-                  <MapPin className="w-5 h-5" aria-hidden="true" />
+              <div className="sm-row">
+                <div className="sm-icon-box bg-marina-100 text-marina-700">
+                  <SvgIcon name="map-pin" className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-xs sm:text-[13px] font-bold tracking-[0.03em] text-onyx-700">
+                    <h3 className="sm-h3">
                       Endereço
                     </h3>
                     <button
@@ -127,23 +124,23 @@ export default function StoreMapSection() {
                       {copied ? "Copiado ✓" : "Toque p/ copiar"}
                     </button>
                   </div>
-                  <p className="text-[15px] sm:text-base font-semibold text-onyx-950 mt-0.5 leading-snug">
+                  <p className="sm-val">
                     Rua Blumenau, Nº 623
                   </p>
-                  <p className="text-sm text-onyx-700 mt-0.5 leading-snug">
+                  <p className="sm-sub">
                     Lages – SC &bull; <span className="whitespace-nowrap">CEP 88505-300</span>
                   </p>
                 </div>
               </div>
 
               {/* Horário */}
-              <div className="grid grid-cols-[40px_1fr] items-start gap-3.5 py-4">
-                <div className="w-10 h-10 bg-silk-100 text-onyx-800 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-                  <Clock className="w-5 h-5" aria-hidden="true" />
+              <div className="sm-row">
+                <div className="sm-icon-box bg-silk-100 text-onyx-800">
+                  <SvgIcon name="clock" className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-xs sm:text-[13px] font-bold tracking-[0.03em] text-onyx-700 [word-spacing:0.06em]">
+                    <h3 className="sm-h3 [word-spacing:0.06em]">
                       Horário de atendimento
                     </h3>
                     {isOpenNow !== null && (
@@ -189,12 +186,12 @@ export default function StoreMapSection() {
               </div>
 
               {/* WhatsApp & Pedidos */}
-              <div className="grid grid-cols-[40px_1fr] items-start gap-3.5 py-4">
-                <div className="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-                  <Phone className="w-5 h-5" aria-hidden="true" />
+              <div className="sm-row">
+                <div className="sm-icon-box bg-emerald-50 text-emerald-700">
+                  <SvgIcon name="phone" className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-xs sm:text-[13px] font-bold tracking-[0.03em] text-onyx-700 [word-spacing:0.06em]">
+                  <h3 className="sm-h3 [word-spacing:0.06em]">
                     WhatsApp &amp; Pedidos
                   </h3>
                   <a
@@ -218,9 +215,9 @@ export default function StoreMapSection() {
                 href={googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 min-h-[44px] bg-marina-600 hover:bg-marina-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm tracking-normal transition-colors shadow-marina-sm flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2"
+                className="sm-route-btn"
               >
-                <Navigation className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <SvgIcon name="navigation" className="w-4 h-4 shrink-0" />
                 <span>Como chegar</span>
               </a>
 
@@ -228,26 +225,26 @@ export default function StoreMapSection() {
                 href={wazeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-auto sm:min-w-[124px] min-h-[44px] bg-white hover:bg-marina-50 text-onyx-950 font-semibold py-2.5 px-4 rounded-xl text-sm tracking-normal transition-colors flex items-center justify-center gap-2 border border-onyx-300 hover:border-marina-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2"
+                className="sm-waze-btn"
               >
                 <span>Waze</span>
-                <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <SvgIcon name="external-link" className="w-4 h-4 shrink-0" />
               </a>
 
               <button
                 type="button"
                 onClick={handleCopyAddress}
                 aria-label="Copiar endereço da loja"
-                className="hidden md:flex w-auto min-h-[44px] bg-silk-50 hover:bg-silk-100 text-onyx-800 font-medium py-2.5 px-3.5 rounded-xl text-[13px] tracking-normal transition-colors items-center justify-center gap-1.5 border border-silk-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marina-600 focus-visible:ring-offset-2"
+                className="sm-copy-btn"
               >
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 text-emerald-700 shrink-0" aria-hidden="true" />
+                    <SvgIcon name="check" className="w-4 h-4 text-emerald-700 shrink-0" />
                     <span className="text-emerald-800 font-semibold">Copiado ✓</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                    <SvgIcon name="copy" className="w-3.5 h-3.5 shrink-0" />
                     <span>Copiar endereço</span>
                   </>
                 )}

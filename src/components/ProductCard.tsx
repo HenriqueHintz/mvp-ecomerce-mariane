@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useCartActions } from "@/context/CartContext";
-import { Button, Price } from "@/components/ui";
-import { Check, Eye, ShoppingBag } from "lucide-react";
+import { Price } from "@/components/ui";
+import { SvgIcon } from "@/components/ui/SvgIcon";
 
 export interface ProductCardProps {
   id: string;
@@ -74,26 +73,24 @@ export default function ProductCard({
   };
 
   return (
-    <article className="group relative min-w-0 bg-white rounded-2xl border border-silk-200 hover:border-marina-300 hover:shadow-luxury-hover transition-all duration-300 flex flex-col justify-between overflow-hidden">
+    <article className="group product-card">
       {/* Imagem 4:5 com fundo uniforme + ação secundária no hover */}
       <Link
         href={`/produto/${slug}`}
-        title={name}
-        aria-label={name}
-        className="block relative aspect-[4/5] bg-white overflow-hidden border-b border-silk-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-marina-600"
+        className="product-card-media"
       >
         {!imgError && imageUrl ? (
-          <Image
+          <img
             src={imageUrl}
             alt={name}
-            fill
+            loading="lazy"
+            decoding="async"
             onError={() => setImgError(true)}
-            className="object-contain p-3 sm:p-4 mix-blend-multiply group-hover:scale-[1.03] transition-transform duration-500 ease-out motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-            sizes="(max-width: 767px) 78vw, (max-width: 1024px) 33vw, 25vw"
+            className="pc-img"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-marina-50 to-silk-100 text-marina-700">
-            <ShoppingBag className="w-8 h-8 text-marina-500 mb-2" />
+          <div className="pc-fallback">
+            <SvgIcon name="shopping-bag" className="w-8 h-8 text-marina-500 mb-2" />
             <span className="text-xs font-bold uppercase tracking-wider text-marina-700">
               {brandName || "Mariane Cosméticos"}
             </span>
@@ -103,38 +100,31 @@ export default function ProductCard({
           </div>
         )}
 
-        <span
-          aria-hidden="true"
-          className="hidden sm:inline-flex items-center gap-1.5 absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/95 text-onyx-950 border border-silk-200 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0 transition-all duration-200 motion-reduce:transition-none whitespace-nowrap"
-        >
-          <Eye className="w-3.5 h-3.5 text-marina-700" />
+        <span aria-hidden="true" className="product-card-hover-pill">
+          <SvgIcon name="eye" className="w-3.5 h-3.5 text-marina-700" />
           Ver detalhes
         </span>
       </Link>
 
       {/* Corpo do card */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between gap-3 sm:gap-3.5">
+      <div className="pc-body">
         <div>
-          <div className="mb-1.5">
-            <span className="text-xs font-semibold text-marina-700 truncate block">
-              {brandName || "Mariane Cosméticos"}
-            </span>
-          </div>
+          <span className="pc-brand">
+            {brandName || "Mariane Cosméticos"}
+          </span>
 
           <Link
             href={`/produto/${slug}`}
-            title={name}
-            aria-label={name}
-            className="block group-hover:text-marina-700 transition-colors focus-visible:outline-none focus-visible:underline"
+            className="pc-link"
           >
-            <h3 className="font-sans text-sm sm:text-[15px] font-medium text-onyx-900 line-clamp-3 leading-snug min-h-[3.75rem]">
+            <h3 className="pc-title line-clamp-3">
               {name}
             </h3>
           </Link>
         </div>
 
         {/* Preço + Ação */}
-        <div className="pt-3 border-t border-silk-200/80 flex flex-col gap-3">
+        <div className="pc-foot">
           <Price
             price={price}
             promoPrice={hasRealPromo ? promoPrice : null}
@@ -142,30 +132,26 @@ export default function ProductCard({
             installmentValue={instVal}
           />
 
-          <Button
+          <button
             type="button"
-            variant="secondary"
-            size="sm"
             onClick={handleAddToCart}
-            className={`self-start min-w-[164px] whitespace-nowrap ${
-              added ? "!bg-emerald-700 !text-white" : ""
-            }`}
+            className={`btn-card-add ${added ? "!bg-emerald-700 !text-white" : ""}`}
             aria-label={
               added ? `${name} adicionado à sacola` : `Adicionar ${name} à sacola`
             }
           >
             {added ? (
               <>
-                <Check className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <SvgIcon name="check" className="w-4 h-4 shrink-0" />
                 <span>Adicionado ✓</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <SvgIcon name="shopping-bag" className="w-4 h-4 shrink-0" />
                 <span>Adicionar</span>
               </>
             )}
-          </Button>
+          </button>
         </div>
       </div>
     </article>

@@ -1,16 +1,45 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
-import {
-  Instagram,
-  MessageCircle,
-  ShieldCheck,
-  Truck,
-  CreditCard,
-  MapPin,
-  Phone,
-  ChevronDown,
-} from "lucide-react";
 import { Logo } from "./Logo";
+import { SvgIcon } from "./ui/SvgIcon";
+
+function FooterNavGroup({
+  title,
+  children,
+  badge,
+}: {
+  title: string;
+  children: React.ReactNode;
+  badge?: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="border-b border-white/15 md:border-b-0 py-1 md:py-0 md:space-y-2.5">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="md:hidden w-full flex items-center justify-between min-h-[44px] text-sm font-semibold text-white cursor-pointer select-none"
+      >
+        <span>{title}</span>
+        <SvgIcon
+          name="chevron-down"
+          className={`w-4 h-4 text-white/80 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      <h3 className="hidden md:block font-bold tracking-wider uppercase text-white text-xs">
+        {title}
+      </h3>
+      <ul className={`${open ? "block" : "hidden md:block"} ft-ul`}>
+        {children}
+      </ul>
+      {badge && <div className="hidden md:block pt-2">{badge}</div>}
+    </div>
+  );
+}
 
 export default function Footer() {
   return (
@@ -18,38 +47,38 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 md:space-y-8">
         {/* Benefit Highlights - Apenas Desktop (no mobile já está na barra de avisos) */}
         <div className="hidden md:grid md:grid-cols-3 gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-          <div className="flex items-center justify-start gap-3 px-3 py-1.5">
-            <div className="p-2 bg-white/10 text-white rounded-lg shrink-0">
-              <Truck className="w-4 h-4" />
+          <div className="ft-perk">
+            <div className="ft-perk-box text-white">
+              <SvgIcon name="truck" className="w-4 h-4" />
             </div>
-            <div className="text-left text-xs leading-tight">
+            <div className="ft-perk-txt">
               <span className="block font-bold text-white">Frete Grátis</span>
-              <span className="text-white/75 text-xs">A partir de R$ 199 para todo o Brasil</span>
+              <span className="ft-perk-sub">A partir de R$ 199 para todo o Brasil</span>
             </div>
           </div>
 
-          <div className="flex items-center justify-start gap-3 px-3 py-1.5 md:border-x md:border-white/10">
-            <div className="p-2 bg-white/10 text-white rounded-lg shrink-0">
-              <CreditCard className="w-4 h-4" />
+          <div className="ft-perk md:border-x md:border-white/10">
+            <div className="ft-perk-box text-white">
+              <SvgIcon name="credit-card" className="w-4 h-4" />
             </div>
-            <div className="text-left text-xs leading-tight">
+            <div className="ft-perk-txt">
               <span className="block font-bold text-white">Até 10x Sem Juros</span>
-              <span className="text-white/75 text-xs">Ou 5% de desconto à vista no PIX</span>
+              <span className="ft-perk-sub">Ou 5% de desconto à vista no PIX</span>
             </div>
           </div>
 
-          <div className="flex items-center justify-start gap-3 px-3 py-1.5">
-            <div className="p-2 bg-white/10 text-emerald-300 rounded-lg shrink-0">
-              <MessageCircle className="w-4 h-4" />
+          <div className="ft-perk">
+            <div className="ft-perk-box text-emerald-300">
+              <SvgIcon name="message-circle" className="w-4 h-4" />
             </div>
-            <div className="text-left text-xs leading-tight">
+            <div className="ft-perk-txt">
               <span className="block font-bold text-white">Atendimento Humanizado</span>
-              <span className="text-white/75 text-xs">Dúvidas e pedidos no WhatsApp</span>
+              <span className="ft-perk-sub">Dúvidas e pedidos no WhatsApp</span>
             </div>
           </div>
         </div>
 
-        {/* Main Footer Links — Mobile compacto + acordeões; Desktop 4 colunas */}
+        {/* Main Footer Links */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 text-xs">
           {/* Coluna 1: Marca & Contato */}
           <div className="space-y-3">
@@ -59,14 +88,17 @@ export default function Footer() {
             <p className="text-xs text-white/85 italic font-sans">
               &ldquo;Linda é a mulher que bem se quer&rdquo;
             </p>
+            <p className="text-xs text-white/80 leading-relaxed">
+              Revendedora oficial Madressenza e distribuidora de linhas capilares profissionais originais em Lages – SC, com entrega para todo o Brasil.
+            </p>
 
             <div className="space-y-1.5 text-white/85 text-xs pt-1">
               <div className="flex items-start gap-1.5">
-                <MapPin className="w-4 h-4 text-pink-200 shrink-0 mt-0.5" aria-hidden="true" />
+                <SvgIcon name="map-pin" className="w-4 h-4 text-pink-200 shrink-0 mt-0.5" />
                 <span>Rua Blumenau, Nº 623 — Lages - SC</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Phone className="w-4 h-4 text-emerald-300 shrink-0" aria-hidden="true" />
+                <SvgIcon name="phone" className="w-4 h-4 text-emerald-300 shrink-0" />
                 <a
                   href="https://wa.me/5549991251617?text=Ol%C3%A1%2C%20Mariane%20Cosm%C3%A9ticos!"
                   target="_blank"
@@ -83,115 +115,57 @@ export default function Footer() {
                 href="https://www.instagram.com/mariane_cosmeticos_01/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 md:p-2 flex items-center justify-center bg-white/10 text-white hover:text-white rounded-xl md:rounded-lg transition-colors hover:bg-white/20 border border-white/15"
+                className="ft-social text-white"
                 aria-label="Instagram da Mariane Cosméticos (@mariane_cosmeticos_01)"
               >
-                <Instagram className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                <SvgIcon name="instagram" className="w-4 h-4 md:w-3.5 md:h-3.5" />
               </a>
               <a
                 href="https://wa.me/5549991251617?text=Ol%C3%A1%2C%20Mariane%20Cosm%C3%A9ticos!"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 md:p-2 flex items-center justify-center bg-white/10 text-emerald-300 hover:text-white rounded-xl md:rounded-lg transition-colors hover:bg-white/20 border border-white/15"
+                className="ft-social text-emerald-300"
                 aria-label="WhatsApp da Mariane Cosméticos: (49) 99125-1617"
               >
-                <MessageCircle className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                <SvgIcon name="message-circle" className="w-4 h-4 md:w-3.5 md:h-3.5" />
               </a>
             </div>
           </div>
 
-          {/* Mobile Acordeões (< md) */}
-          <div className="md:hidden divide-y divide-white/15 border-y border-white/15">
-            <details className="group py-1">
-              <summary className="flex items-center justify-between min-h-[44px] text-sm font-semibold text-white cursor-pointer list-none select-none">
-                <span>Categorias</span>
-                <ChevronDown className="w-4 h-4 text-white/80 transition-transform group-open:rotate-180" aria-hidden="true" />
-              </summary>
-              <ul className="pb-3 space-y-2 text-sm text-white/85">
-                <li><Link href="/categoria/tratamento-mascaras" className="block py-1 hover:text-white">Tratamento &amp; Máscaras</Link></li>
-                <li><Link href="/categoria/cronograma-capilar" className="block py-1 hover:text-white">Cronograma Capilar</Link></li>
-                <li><Link href="/categoria/shampoos-condicionadores" className="block py-1 hover:text-white">Shampoos &amp; Condicionadores</Link></li>
-                <li><Link href="/categoria/oleos-seruns" className="block py-1 hover:text-white">Óleos &amp; Séruns</Link></li>
-                <li><Link href="/categoria/perfumaria-casa" className="block py-1 hover:text-white">Perfumaria &amp; Casa</Link></li>
-                <li><Link href="/categoria/kits-promocionais" className="block py-1 hover:text-white">Kits Promocionais</Link></li>
-              </ul>
-            </details>
+          <FooterNavGroup title="Categorias">
+            <li><Link href="/categoria/tratamento-mascaras" className="ft-link">Tratamento &amp; Máscaras</Link></li>
+            <li><Link href="/categoria/cronograma-capilar" className="ft-link">Cronograma Capilar</Link></li>
+            <li><Link href="/categoria/shampoos-condicionadores" className="ft-link">Shampoos &amp; Condicionadores</Link></li>
+            <li><Link href="/categoria/oleos-seruns" className="ft-link">Óleos &amp; Séruns</Link></li>
+            <li><Link href="/categoria/perfumaria-casa" className="ft-link">Perfumaria &amp; Casa</Link></li>
+            <li><Link href="/categoria/kits-promocionais" className="ft-link">Kits Promocionais</Link></li>
+          </FooterNavGroup>
 
-            <details className="group py-1">
-              <summary className="flex items-center justify-between min-h-[44px] text-sm font-semibold text-white cursor-pointer list-none select-none">
-                <span>Marcas oficiais</span>
-                <ChevronDown className="w-4 h-4 text-white/80 transition-transform group-open:rotate-180" aria-hidden="true" />
-              </summary>
-              <ul className="pb-3 space-y-2 text-sm text-white/85">
-                <li><Link href="/produtos?marca=madressenza" className="block py-1 font-semibold text-white">Madressenza (Revendedora Oficial)</Link></li>
-                <li><Link href="/produtos?marca=wella-profissional" className="block py-1 hover:text-white">Wella Profissional</Link></li>
-                <li><Link href="/produtos?marca=loreal-professionnel" className="block py-1 hover:text-white">L&apos;Oréal Professionnel</Link></li>
-                <li><Link href="/produtos?marca=truss" className="block py-1 hover:text-white">Truss</Link></li>
-                <li><Link href="/produtos?marca=brae" className="block py-1 hover:text-white">Braé</Link></li>
-                <li><Link href="/produtos?marca=lola-cosmetics" className="block py-1 hover:text-white">Lola Cosmetics</Link></li>
-                <li><Link href="/produtos?marca=amend" className="block py-1 hover:text-white">Amend</Link></li>
-              </ul>
-            </details>
+          <FooterNavGroup title="Marcas Oficiais">
+            <li><Link href="/produtos?marca=madressenza" className="ft-link font-semibold text-white">Madressenza (Revendedora Oficial)</Link></li>
+            <li><Link href="/produtos?marca=wella-profissional" className="ft-link">Wella Profissional</Link></li>
+            <li><Link href="/produtos?marca=loreal-professionnel" className="ft-link">L&apos;Oréal Professionnel</Link></li>
+            <li><Link href="/produtos?marca=truss" className="ft-link">Truss</Link></li>
+            <li><Link href="/produtos?marca=brae" className="ft-link">Braé</Link></li>
+            <li><Link href="/produtos?marca=lola-cosmetics" className="ft-link">Lola Cosmetics</Link></li>
+            <li><Link href="/produtos?marca=amend" className="ft-link">Amend</Link></li>
+          </FooterNavGroup>
 
-            <details className="group py-1">
-              <summary className="flex items-center justify-between min-h-[44px] text-sm font-semibold text-white cursor-pointer list-none select-none">
-                <span>Ajuda e Políticas</span>
-                <ChevronDown className="w-4 h-4 text-white/80 transition-transform group-open:rotate-180" aria-hidden="true" />
-              </summary>
-              <ul className="pb-3 space-y-2 text-sm text-white/85">
-                <li><Link href="/sobre" className="block py-1 hover:text-white">Sobre a Loja</Link></li>
-                <li><Link href="/atendimento" className="block py-1 hover:text-white">Central de Atendimento</Link></li>
-                <li><Link href="/carrinho" className="block py-1 hover:text-white">Minha Sacola</Link></li>
-                <li><Link href="/politica-de-privacidade" className="block py-1 hover:text-white">Política de Privacidade</Link></li>
-                <li><Link href="/trocas-e-devolucoes" className="block py-1 hover:text-white">Trocas &amp; Devoluções</Link></li>
-              </ul>
-            </details>
-          </div>
-
-          {/* Desktop Coluna 2: Categorias */}
-          <div className="hidden md:block space-y-2.5">
-            <h3 className="font-bold tracking-wider uppercase text-white text-xs">Categorias</h3>
-            <ul className="space-y-1.5 text-white/75">
-              <li><Link href="/categoria/tratamento-mascaras" className="hover:text-white transition-colors">Tratamento & Máscaras</Link></li>
-              <li><Link href="/categoria/cronograma-capilar" className="hover:text-white transition-colors">Cronograma Capilar</Link></li>
-              <li><Link href="/categoria/shampoos-condicionadores" className="hover:text-white transition-colors">Shampoos & Condicionadores</Link></li>
-              <li><Link href="/categoria/oleos-seruns" className="hover:text-white transition-colors">Óleos & Séruns</Link></li>
-              <li><Link href="/categoria/perfumaria-casa" className="hover:text-white transition-colors">Perfumaria & Casa</Link></li>
-              <li><Link href="/categoria/kits-promocionais" className="hover:text-white transition-colors">Kits Promocionais</Link></li>
-            </ul>
-          </div>
-
-          {/* Desktop Coluna 3: Marcas Oficiais */}
-          <div className="hidden md:block space-y-2.5">
-            <h3 className="font-bold tracking-wider uppercase text-white text-xs">Marcas Oficiais</h3>
-            <ul className="space-y-1.5 text-white/75">
-              <li><Link href="/produtos?marca=madressenza" className="hover:text-white transition-colors font-semibold text-white">Madressenza (Revendedora Oficial)</Link></li>
-              <li><Link href="/produtos?marca=wella-profissional" className="hover:text-white transition-colors">Wella Profissional</Link></li>
-              <li><Link href="/produtos?marca=loreal-professionnel" className="hover:text-white transition-colors">L&apos;Oréal Professionnel</Link></li>
-              <li><Link href="/produtos?marca=truss" className="hover:text-white transition-colors">Truss</Link></li>
-              <li><Link href="/produtos?marca=brae" className="hover:text-white transition-colors">Braé</Link></li>
-              <li><Link href="/produtos?marca=lola-cosmetics" className="hover:text-white transition-colors">Lola Cosmetics</Link></li>
-              <li><Link href="/produtos?marca=amend" className="hover:text-white transition-colors">Amend</Link></li>
-            </ul>
-          </div>
-
-          {/* Desktop Coluna 4: Ajuda & Segurança */}
-          <div className="hidden md:block space-y-2.5">
-            <h3 className="font-bold tracking-wider uppercase text-white text-xs">Ajuda & Segurança</h3>
-            <ul className="space-y-1.5 text-white/75">
-              <li><Link href="/sobre" className="hover:text-white transition-colors">Sobre a Loja</Link></li>
-              <li><Link href="/atendimento" className="hover:text-white transition-colors">Central de Atendimento</Link></li>
-              <li><Link href="/carrinho" className="hover:text-white transition-colors">Minha Sacola</Link></li>
-              <li><Link href="/politica-de-privacidade" className="hover:text-white transition-colors">Política de Privacidade</Link></li>
-              <li><Link href="/trocas-e-devolucoes" className="hover:text-white transition-colors">Trocas & Devoluções</Link></li>
-            </ul>
-            <div className="pt-2">
+          <FooterNavGroup
+            title="Ajuda & Segurança"
+            badge={
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/15 text-xs text-white">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                <SvgIcon name="shield-check" className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
                 <span>Site Seguro &amp; Criptografado</span>
               </div>
-            </div>
-          </div>
+            }
+          >
+            <li><Link href="/sobre" className="ft-link">Sobre a Loja</Link></li>
+            <li><Link href="/atendimento" className="ft-link">Central de Atendimento</Link></li>
+            <li><Link href="/carrinho" className="ft-link">Minha Sacola</Link></li>
+            <li><Link href="/politica-de-privacidade" className="ft-link">Política de Privacidade</Link></li>
+            <li><Link href="/trocas-e-devolucoes" className="ft-link">Trocas &amp; Devoluções</Link></li>
+          </FooterNavGroup>
         </div>
 
         {/* Copyright */}
